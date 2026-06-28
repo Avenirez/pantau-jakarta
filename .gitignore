@@ -1,0 +1,30 @@
+# Next.js build output
+.next/
+out/
+build/
+
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python env and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Project downloads (extracted PDFs)
+backend/scripts/downloads/
+backend/.env
+frontend/.env.local
+
+# Operating System files
+.DS_Store
+Thumbs.db
