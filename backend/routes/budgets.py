@@ -1,6 +1,9 @@
 """Budget-related API routes — districts, villages, dashboard data (Production Version)."""
 
+import os
 import time
+import asyncio
+import httpx
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, HTTPException
 from services.supabase_client import get_supabase
@@ -12,6 +15,19 @@ SECTOR_LABELS = {
     "infrastructure": "Infrastruktur & Jalan",
     "health": "Kesehatan & Posyandu",
 }
+
+# Global httpx AsyncClient with connection reuse for optimal performance
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+async_client = httpx.AsyncClient(
+    base_url=SUPABASE_URL,
+    headers={
+        "apikey": SUPABASE_KEY,
+        "Authorization": f"Bearer {SUPABASE_KEY}"
+    },
+    timeout=10.0
+)
 
 
 @router.get("/districts")
@@ -43,7 +59,7 @@ def list_villages(district_id: int):
 
 
 @router.get("/villages/{village_id}/dashboard")
-def village_dashboard(village_id: int):
+async def village_dashboard(village_id: int):
     """
     Aggregated dashboard payload for a single Kelurahan from Supabase:
     - village & district info
@@ -53,50 +69,41 @@ def village_dashboard(village_id: int):
     """
     start_time = time.time()
     try:
-        sb = get_supabase()
+        # Define URLs for concurrent fetching
+        url_info = f"/rest/v1/villages?id=eq.{village_id}&select=name,districts(name)"
+        url_budgets = f"/rest/v1/budgets?village_id=eq.{village_id}&select=sector,program_name,allocation_amount,fiscal_year"
+        url_summary = f"/rest/v1/ai_summaries?village_id=eq.{village_id}&select=summarized_text"
 
-        # Define functions to run concurrently
-        def fetch_village_info():
-            t_start = time.time()
-            res = sb.table("villages").select("name, districts(name)").eq("id", village_id).execute()
-            return res, time.time() - t_start
-
-        def fetch_budgets():
-            t_start = time.time()
-            res = sb.table("budgets").select("sector, program_name, allocation_amount, fiscal_year").eq("village_id", village_id).execute()
-            return res, time.time() - t_start
-
-        def fetch_summary():
-            t_start = time.time()
-            res = sb.table("ai_summaries").select("summarized_text").eq("village_id", village_id).execute()
-            return res, time.time() - t_start
-
-        # Run queries in parallel
         t0 = time.time()
-        with ThreadPoolExecutor(max_workers=3) as executor:
-            future_info = executor.submit(fetch_village_info)
-            future_budgets = executor.submit(fetch_budgets)
-            future_summary = executor.submit(fetch_summary)
-
-            village_resp, t_info = future_info.result()
-            budgets_resp, t_budgets = future_budgets.result()
-            summary_resp, t_summary = future_summary.result()
+        res_info, res_budgets, res_summary = await asyncio.gather(
+            async_client.get(url_info),
+            async_client.get(url_budgets),
+            async_client.get(url_summary)
+        )
         t_parallel = time.time() - t0
 
-        if not village_resp.data:
+        # Validate response status codes
+        for res in (res_info, res_budgets, res_summary):
+            if res.status_code != 200:
+                raise HTTPException(status_code=res.status_code, detail=f"Database error: {res.text}")
+
+        village_data = res_info.json()
+        budgets = res_budgets.json()
+        summary_data = res_summary.json()
+
+        if not village_data:
             raise HTTPException(404, "Kelurahan tidak ditemukan di database")
 
-        info = village_resp.data[0]
+        info = village_data[0]
         village_name = info["name"]
         district_name = info["districts"]["name"] if info.get("districts") else "—"
 
-        budgets = budgets_resp.data
-
         narrative = (
-            summary_resp.data[0]["summarized_text"]
-            if summary_resp.data
+            summary_data[0]["summarized_text"]
+            if summary_data
             else "Ringkasan AI belum tersedia untuk kelurahan ini (Gemini API belum dijalankan)."
         )
+
 
         # --- metrics ---
         latest_year = max((b["fiscal_year"] for b in budgets), default=2025)
@@ -138,7 +145,7 @@ def village_dashboard(village_id: int):
         total_elapsed = time.time() - start_time
         print(
             f"[API Profile] Village {village_id}: "
-            f"Info={t_info:.3f}s, Budgets={t_budgets:.3f}s, AI={t_summary:.3f}s. "
+            f"Parallel API Queries = {t_parallel:.3f}s, "
             f"Total API Process = {total_elapsed:.3f}s"
         )
 
