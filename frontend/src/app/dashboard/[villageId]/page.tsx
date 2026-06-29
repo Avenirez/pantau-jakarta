@@ -143,7 +143,7 @@ export default function VillageDashboard() {
 
           <div className="glass-card p-6 opacity-0 animate-fade-in-up animate-delay-300">
             <h2 className="text-lg font-semibold text-white mb-4">
-              Perbandingan Tahunan (2023–2025)
+              Perbandingan Tahunan
             </h2>
             <div className="h-[350px]">
               <YearlyBarChart data={data.chart_yearly} />

@@ -16,6 +16,7 @@ PDF_SOURCES = {
     2023: "https://apbd.jakarta.go.id/doc/publik/6. APBD/APBD 2023/PENETAPAN 2023/PERDA/Lampiran 1 Perda APBD TA 2023.pdf",
     2024: "https://apbd.jakarta.go.id/doc/publik/6. APBD/APBD 2024/PENETAPAN/PERDA/Lampiran 1 Perda APBD TA 2024.pdf",
     2025: "https://apbd.jakarta.go.id/doc/publik/6. APBD/APBD 2025/PENETAPAN/PERDA/Lampiran 1 Perda APBD TA 2025.pdf",
+    2026: "https://apbd.jakarta.go.id/doc/publik/6. APBD/APBD 2026/PENETAPAN/PERDA/Lampiran 1 Perda APBD 2026.pdf",
 }
 
 

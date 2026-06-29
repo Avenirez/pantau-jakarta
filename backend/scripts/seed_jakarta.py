@@ -131,9 +131,9 @@ def seed_database():
                     vil_id = insert_vil.data[0]["id"]
                     village_count += 1
                 
-                # 3. Generate realistic budgets for years 2023, 2024, 2025
+                # 3. Generate realistic budgets for years 2024, 2025, 2026
                 # For each year, we generate budgets for the 3 sectors
-                for year in [2023, 2024, 2025]:
+                for year in [2024, 2025, 2026]:
                     # Check if budgets already exist for this village/year to prevent duplicate seeding
                     existing_budgets = supabase.table("budgets").select("id").eq("village_id", vil_id).eq("fiscal_year", year).execute()
                     if existing_budgets.data:
