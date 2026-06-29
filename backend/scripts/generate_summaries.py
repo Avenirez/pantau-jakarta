@@ -1,12 +1,13 @@
 """
-Batch AI Summarization — generates Gemini narratives for every village.
+Generate AI summaries for each village using Gemini 1.5 Flash.
 
-Rate-limited to stay within Gemini free tier (15 RPM → ~4 s sleep).
+Fetches village budgets from Supabase, builds prompt, requests summary,
+and upserts into the `ai_summaries` table.
 
-Usage:
-    python -m scripts.generate_summaries   # run from backend/
+Respects free-tier rate limits (approx 15 requests per minute -> ~4s delay).
 """
 
+import os
 import time
 from dotenv import load_dotenv
 
@@ -19,50 +20,55 @@ from services.gemini_service import summarise_village_budget
 def generate_all():
     sb = get_supabase()
 
+    # Get all villages with their district names
     villages = (
         sb.table("villages")
-        .select("id, name, districts(name)")
+        .select("id, name, district_id, districts(name)")
         .execute()
         .data
     )
-
-    if not villages:
-        print("Database kosong — jalankan extract_pdf.py terlebih dahulu.")
-        return
-
     print(f"Memproses {len(villages)} kelurahan...\n")
 
     for idx, v in enumerate(villages, 1):
         vid = v["id"]
         vname = v["name"]
-        dname = v["districts"]["name"] if v.get("districts") else "—"
+        dname = v["districts"]["name"] if v.get("districts") else "DKI Jakarta"
 
+        print(f"  [{idx}/{len(villages)}] {vname} ({dname}) - menghubungi Gemini...")
+
+        # Fetch budgets for this village
         budgets = (
             sb.table("budgets")
-            .select("sector, program_name, allocation_amount")
+            .select("sector, program_name, allocation_amount, fiscal_year")
             .eq("village_id", vid)
             .execute()
             .data
         )
 
         if not budgets:
-            print(f"  [{idx}/{len(villages)}] {vname} — tidak ada data anggaran, skip.")
+            print(f"    Skip - tidak ada data anggaran.")
             continue
 
-        print(f"  [{idx}/{len(villages)}] {vname} — menghubungi Gemini...")
-        summary = summarise_village_budget(vname, dname, budgets)
+        try:
+            # Call Gemini with proper signature: name, district, budget_rows
+            summary = summarise_village_budget(vname, dname, budgets)
+            if not summary or summary.startswith("Gagal menghasilkan ringkasan"):
+                print(f"    Gagal - {summary}")
+                continue
 
-        sb.table("ai_summaries").upsert({
-            "village_id": vid,
-            "summarized_text": summary,
-        }).execute()
+            # Upsert into DB
+            sb.table("ai_summaries").upsert({
+                "village_id": vid,
+                "summarized_text": summary,
+            }).execute()
 
-        print(f"    ✓ Tersimpan ({len(summary)} karakter)")
+            print(f"    Sukses - Tersimpan ({len(summary)} karakter)")
 
-        # rate limit: Gemini free tier = 15 RPM
-        time.sleep(4)
+        except Exception as exc:
+            print(f"    Error: {exc}")
 
-    print("\n✅ Batch summarization selesai.")
+        # Sleep to avoid hitting 15 RPM rate limit
+        time.sleep(4.0)
 
 
 if __name__ == "__main__":

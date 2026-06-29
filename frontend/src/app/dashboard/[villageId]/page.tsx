@@ -15,6 +15,8 @@ import type { DashboardData } from "@/lib/api";
 import MetricCard from "@/components/metric-card";
 import PlotlyChart from "@/components/plotly-chart";
 import QrisModal from "@/components/qris-modal";
+import AuthButton from "@/components/auth-button";
+import ReviewSection from "@/components/review-section";
 
 function formatRupiah(amount: number): string {
   if (amount >= 1_000_000_000) {
@@ -98,7 +100,8 @@ export default function VillageDashboard() {
             </p>
           </div>
 
-          <div className="w-20" /> {/* spacer for centering */}
+          {/* Auth Button — replaces the empty spacer */}
+          <AuthButton />
         </div>
       </header>
 
@@ -167,6 +170,9 @@ export default function VillageDashboard() {
             opini resmi pemerintah.
           </p>
         </section>
+
+        {/* ===== REVIEWS & RATINGS ===== */}
+        <ReviewSection villageId={villageId} />
 
         {/* ===== DONATION / QRIS ===== */}
         <section className="text-center py-12 opacity-0 animate-fade-in-up animate-delay-400">
