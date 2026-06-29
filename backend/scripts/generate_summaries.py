@@ -50,8 +50,15 @@ def generate_all():
             continue
 
         try:
-            # Call Gemini with proper signature: name, district, budget_rows
-            summary = summarise_village_budget(vname, dname, budgets)
+            # Call Gemini with proper signature: name, district, budget_rows with retry on rate limit
+            while True:
+                summary = summarise_village_budget(vname, dname, budgets)
+                if "quota" in summary.lower() or "429" in summary.lower() or "limit" in summary.lower():
+                    print(f"    Terkena rate limit Gemini. Menunggu 30 detik untuk mencoba kembali...")
+                    time.sleep(30.0)
+                    continue
+                break
+
             if not summary or summary.startswith("Gagal menghasilkan ringkasan"):
                 print(f"    Gagal - {summary}")
                 continue
@@ -68,7 +75,8 @@ def generate_all():
             print(f"    Error: {exc}")
 
         # Sleep to avoid hitting 15 RPM rate limit
-        time.sleep(4.0)
+        time.sleep(5.0)
+
 
 
 if __name__ == "__main__":
