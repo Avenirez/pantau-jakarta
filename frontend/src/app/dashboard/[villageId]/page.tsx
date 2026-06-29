@@ -13,7 +13,7 @@ import {
 import { fetchDashboard } from "@/lib/api";
 import type { DashboardData } from "@/lib/api";
 import MetricCard from "@/components/metric-card";
-import PlotlyChart from "@/components/plotly-chart";
+import { SectorAreaChart, YearlyBarChart } from "@/components/recharts-chart";
 import QrisModal from "@/components/qris-modal";
 import AuthButton from "@/components/auth-button";
 import ReviewSection from "@/components/review-section";
@@ -100,7 +100,6 @@ export default function VillageDashboard() {
             </p>
           </div>
 
-          {/* Auth Button — replaces the empty spacer */}
           <AuthButton />
         </div>
       </header>
@@ -138,7 +137,7 @@ export default function VillageDashboard() {
               Rincian per Sektor ({data.fiscal_year})
             </h2>
             <div className="h-[350px]">
-              <PlotlyChart data={data.chart_single} />
+              <SectorAreaChart data={data.chart_single} />
             </div>
           </div>
 
@@ -147,7 +146,7 @@ export default function VillageDashboard() {
               Perbandingan Tahunan (2023–2025)
             </h2>
             <div className="h-[350px]">
-              <PlotlyChart data={data.chart_yearly} />
+              <YearlyBarChart data={data.chart_yearly} />
             </div>
           </div>
         </section>

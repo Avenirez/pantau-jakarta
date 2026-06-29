@@ -23,8 +23,8 @@ export interface DashboardData {
   fiscal_year: number;
   metrics: DashboardMetrics;
   ai_narrative: string;
-  chart_single: Record<string, unknown>;
-  chart_yearly: Record<string, unknown>;
+  chart_single: Array<{ sector: string; amount: number }>;
+  chart_yearly: Array<Record<string, any>>;
 }
 
 async function apiFetch<T>(path: string): Promise<T> {

@@ -34,6 +34,13 @@ export default function LandingPage() {
     fetchVillages(selectedDistrict).then(setVillages).catch(console.error);
   }, [selectedDistrict]);
 
+  // Prefetch dashboard page when village is selected to eliminate navigation delay
+  useEffect(() => {
+    if (selectedVillage) {
+      router.prefetch(`/dashboard/${selectedVillage}`);
+    }
+  }, [selectedVillage, router]);
+
   const handleSubmit = () => {
     if (selectedVillage) {
       router.push(`/dashboard/${selectedVillage}`);
