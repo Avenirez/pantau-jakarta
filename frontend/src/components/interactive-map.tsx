@@ -78,9 +78,19 @@ export default function InteractiveMap({
     const initialCenter = center || [-6.2088, 106.8456];
     const initialZoom = center ? 14 : 13;
 
+    // Bounds around Jakarta region to restrict panning
+    const jakartaBounds = L.latLngBounds(
+      [-6.40, 106.65], // Southwest corner (Tangerang/Bogor border)
+      [-5.90, 107.05]  // Northeast corner (Tanjung Priok/Bekasi border)
+    );
+
     const map = L.map(mapContainerRef.current, {
       center: initialCenter,
       zoom: initialZoom,
+      minZoom: 11,
+      maxZoom: 18,
+      maxBounds: jakartaBounds,
+      maxBoundsViscosity: 1.0,
       zoomControl: false,
     });
 

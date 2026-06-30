@@ -18,10 +18,20 @@ export default function JakartaMap() {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
+    // Bounds around Jakarta region to restrict panning
+    const jakartaBounds = L.latLngBounds(
+      [-6.40, 106.65], // Southwest corner (Tangerang/Bogor border)
+      [-5.90, 107.05]  // Northeast corner (Tanjung Priok/Bekasi border)
+    );
+
     // Centered at Jakarta
     const map = L.map(mapContainerRef.current, {
       center: [-6.2088, 106.8456],
       zoom: 11.5,
+      minZoom: 11,
+      maxZoom: 17,
+      maxBounds: jakartaBounds,
+      maxBoundsViscosity: 1.0,
       zoomControl: false,
     });
 
