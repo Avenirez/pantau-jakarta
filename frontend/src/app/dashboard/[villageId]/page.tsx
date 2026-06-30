@@ -44,7 +44,7 @@ export default function VillageDashboard() {
   // States for OSM Facilities Map
   const [facilities, setFacilities] = useState<Facility[]>([]);
   const [loadingMap, setLoadingMap] = useState(false);
-  const [selectedSectorFilter, setSelectedSectorFilter] = useState<"all" | "health" | "infrastructure" | "flood">("all");
+  const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>("all");
 
   useEffect(() => {
     if (!villageId) return;
@@ -144,12 +144,15 @@ export default function VillageDashboard() {
               {[
                 { id: "all", label: "Semua Sektor", activeClass: "bg-slate-800 text-white border-slate-700 shadow-sm" },
                 { id: "health", label: "Kesehatan", activeClass: "bg-rose-500/20 text-rose-300 border-rose-500/30 shadow-sm shadow-rose-950" },
-                { id: "infrastructure", label: "Infrastruktur & Taman", activeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-950" },
+                { id: "education", label: "Pendidikan", activeClass: "bg-sky-500/20 text-sky-300 border-sky-500/30 shadow-sm shadow-sky-950" },
+                { id: "recreation", label: "Taman & Olahraga", activeClass: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-950" },
                 { id: "flood", label: "Banjir & Sanitasi", activeClass: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30 shadow-sm shadow-cyan-950" },
+                { id: "public_services", label: "Keamanan & Publik", activeClass: "bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-sm shadow-purple-950" },
+                { id: "mobility_economy", label: "Transportasi & Pasar", activeClass: "bg-amber-500/20 text-amber-300 border-amber-500/30 shadow-sm shadow-amber-950" },
               ].map((btn) => (
                 <button
                   key={btn.id}
-                  onClick={() => setSelectedSectorFilter(btn.id as any)}
+                  onClick={() => setSelectedSectorFilter(btn.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border border-transparent transition-all duration-200 ${
                     selectedSectorFilter === btn.id
                       ? btn.activeClass

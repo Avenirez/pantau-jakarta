@@ -7,7 +7,7 @@ import type { Facility } from "@/lib/overpass";
 
 interface InteractiveMapProps {
   facilities: Facility[];
-  selectedSector: string; // 'all' | 'health' | 'infrastructure' | 'flood'
+  selectedSector: string; // 'all' | 'health' | 'education' | 'recreation' | 'flood' | 'public_services' | 'mobility_economy'
   villageName: string;
 }
 
@@ -26,20 +26,32 @@ export default function InteractiveMap({
     return f.sector === selectedSector;
   });
 
-  // Create custom marker icons for each sector
-  const createCustomIcon = (sector: "health" | "infrastructure" | "flood", category: string) => {
-    let color = "#3b82f6"; // Blue
+  // Create custom marker icons for each sector with distinctive colors
+  const createCustomIcon = (
+    sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy",
+    category: string
+  ) => {
+    let color = "#3b82f6"; // Default Blue (Education)
     let glowColor = "rgba(59, 130, 246, 0.5)";
 
     if (sector === "health") {
       color = "#f43f5e"; // Rose / Red
       glowColor = "rgba(244, 63, 94, 0.6)";
-    } else if (sector === "flood") {
-      color = "#06b6d4"; // Cyan / Blue-Green
-      glowColor = "rgba(6, 182, 212, 0.6)";
-    } else if (sector === "infrastructure") {
+    } else if (sector === "education") {
+      color = "#38bdf8"; // Sky Blue
+      glowColor = "rgba(56, 189, 248, 0.6)";
+    } else if (sector === "recreation") {
       color = "#10b981"; // Emerald / Green
       glowColor = "rgba(16, 185, 129, 0.6)";
+    } else if (sector === "flood") {
+      color = "#06b6d4"; // Cyan
+      glowColor = "rgba(6, 182, 212, 0.6)";
+    } else if (sector === "public_services") {
+      color = "#a855f7"; // Purple
+      glowColor = "rgba(168, 85, 247, 0.6)";
+    } else if (sector === "mobility_economy") {
+      color = "#f59e0b"; // Amber / Orange
+      glowColor = "rgba(245, 158, 11, 0.6)";
     }
 
     return L.divIcon({
@@ -114,20 +126,36 @@ export default function InteractiveMap({
         icon: createCustomIcon(facility.sector, facility.category),
       });
 
+      // Map sector keys to human labels for visual polish
+      const sectorLabels: Record<string, string> = {
+        health: "Kesehatan",
+        education: "Pendidikan",
+        recreation: "Taman & Rekreasi",
+        flood: "Banjir & Sanitasi",
+        public_services: "Layanan Keamanan & Publik",
+        mobility_economy: "Transportasi & Pasar",
+      };
+
+      const sectorColors: Record<string, string> = {
+        health: "#f43f5e",
+        education: "#38bdf8",
+        recreation: "#10b981",
+        flood: "#06b6d4",
+        public_services: "#a855f7",
+        mobility_economy: "#f59e0b",
+      };
+
       // HTML inside Popup
       const popupContent = `
         <div class="p-2 text-slate-100 font-sans" style="min-width: 160px;">
           <h4 class="font-bold text-sm text-white mb-1">${facility.name}</h4>
+          <div class="text-[11px] text-slate-400 mt-1">${facility.category}</div>
           <div class="flex items-center gap-1.5 mt-2">
             <span class="inline-block w-2.5 h-2.5 rounded-full" style="background-color: ${
-              facility.sector === "health"
-                ? "#f43f5e"
-                : facility.sector === "flood"
-                ? "#06b6d4"
-                : "#10b981"
+              sectorColors[facility.sector] || "#3b82f6"
             }"></span>
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              ${facility.category}
+            <span class="text-[10px] font-semibold uppercase tracking-wider text-slate-300">
+              ${sectorLabels[facility.sector] || facility.sector}
             </span>
           </div>
         </div>

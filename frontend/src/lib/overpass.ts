@@ -3,7 +3,7 @@ export interface Facility {
   name: string;
   lat: number;
   lon: number;
-  sector: "health" | "infrastructure" | "flood";
+  sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy";
   category: string; // e.g., 'Sekolah', 'Puskesmas', 'Taman', 'Rumah Pompa', 'Pos Damkar'
   amenityType: string;
 }
@@ -12,10 +12,7 @@ export async function fetchFacilitiesFromOSM(villageName: string): Promise<Facil
   // Clean village name if it contains "Kelurahan" prefix
   const cleanName = villageName.replace(/^kelurahan\s+/i, "").trim();
 
-  // Overpass QL query:
-  // 1. Find administrative boundary level 8 (Kelurahan) named matching our cleanName in Jakarta
-  // 2. Fetch elements matching our target tags inside that area
-  // 3. Output centroids ('out center')
+  // Overpass QL query searching for all public facilities in the Kelurahan
   const query = `
     [out:json][timeout:25];
     area["name"~"${cleanName}",i]["admin_level"="8"]->.a;
@@ -98,27 +95,64 @@ function getFriendlyCategoryName(tags: any): string {
   return "Fasilitas Publik";
 }
 
-function mapTagsToSectorAndCategory(tags: any): { sector: "health" | "infrastructure" | "flood"; category: string } {
-  // Sektor Kesehatan (health)
+function mapTagsToSectorAndCategory(tags: any): { 
+  sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy"; 
+  category: string 
+} {
+  const category = getFriendlyCategoryName(tags);
+
+  // 1. Sektor Kesehatan (health)
   if (
     tags.amenity === "clinic" ||
     tags.amenity === "hospital" ||
     tags.amenity === "pharmacy" ||
     tags.amenity === "doctors"
   ) {
-    return { sector: "health", category: getFriendlyCategoryName(tags) };
+    return { sector: "health", category };
   }
 
-  // Sektor Banjir (flood)
+  // 2. Sektor Pendidikan (education)
+  if (
+    tags.amenity === "school" ||
+    tags.amenity === "kindergarten" ||
+    tags.amenity === "college" ||
+    tags.amenity === "university" ||
+    tags.amenity === "library"
+  ) {
+    return { sector: "education", category };
+  }
+
+  // 3. Sektor Ruang Terbuka & Rekreasi (recreation)
+  if (
+    tags.leisure === "park" ||
+    tags.leisure === "playground" ||
+    tags.leisure === "sports_centre" ||
+    tags.leisure === "pitch"
+  ) {
+    return { sector: "recreation", category };
+  }
+
+  // 4. Sektor Banjir & Sanitasi (flood)
   if (
     tags.waterway === "pumping_station" ||
     tags.man_made === "pumping_station" ||
     tags.amenity === "waste_disposal" ||
     tags.amenity === "recycling"
   ) {
-    return { sector: "flood", category: getFriendlyCategoryName(tags) };
+    return { sector: "flood", category };
   }
 
-  // Sektor Infrastruktur & Jalan / Lainnya (infrastructure)
-  return { sector: "infrastructure", category: getFriendlyCategoryName(tags) };
+  // 5. Sektor Keamanan & Administrasi Publik (public_services)
+  if (
+    tags.amenity === "fire_station" ||
+    tags.amenity === "police" ||
+    tags.amenity === "townhall" ||
+    tags.amenity === "community_centre" ||
+    tags.amenity === "post_office"
+  ) {
+    return { sector: "public_services", category };
+  }
+
+  // 6. Sektor Transportasi & Ekonomi Lokal (mobility_economy)
+  return { sector: "mobility_economy", category };
 }
