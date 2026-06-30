@@ -18,7 +18,7 @@ async function queryOverpassWithFallback(query: string): Promise<any> {
         body: "data=" + encodeURIComponent(query),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "PantauJakarta/1.0 (contact@pantaujakarta.org)",
+          "User-Agent": "JakScope/1.0 (contact@jakscope.org)",
         },
         // Set a reasonable timeout (e.g. 8 seconds)
         signal: AbortSignal.timeout(8000),
@@ -91,19 +91,18 @@ export async function GET(request: Request) {
 
     if (!dbData) {
       return NextResponse.json(
-        { error: `Kelurahan '${kelurahanName}' tidak terdaftar di database PantauJakarta` },
+        { error: `Kelurahan '${kelurahanName}' tidak terdaftar di database JakScope` },
         { status: 404 }
       );
     }
 
     if (!dbData.budgets || dbData.budgets.length === 0) {
       return NextResponse.json(
-        { error: `Kelurahan '${kelurahanName}' terdeteksi, namun belum memiliki data laporan anggaran saat ini.` },
+        { error: `Kelurahan '${kelurahanName}' terdeteksi, namun belum terintegrasi di sistem JakScope.` },
         { status: 400 }
       );
     }
 
-    // Check if the kelurahan has any facilities in OpenStreetMap
     const facilitiesQuery = `
       [out:json][timeout:10];
       area["name"="${kelurahanName}"]->.a;
@@ -111,14 +110,7 @@ export async function GET(request: Request) {
         nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
         nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
         nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
-        nwr["waterway"="pumping_station"](area.a);
-        nwr["man_made"="pumping_station"](area.a);
-        nwr["amenity"~"waste_disposal|recycling"](area.a);
         nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
-        nwr["amenity"="marketplace"](area.a);
-        nwr["highway"="bus_stop"](area.a);
-        nwr["amenity"="bus_station"](area.a);
-        nwr["railway"="station"](area.a);
       );
       out count;
     `;

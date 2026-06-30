@@ -17,27 +17,19 @@ export default function LandingPage() {
         <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-jakarta-emerald/10 blur-3xl" />
 
         <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-sm text-slate-300 mb-8 opacity-0 animate-fade-in-up">
-            <Shield size={14} className="text-jakarta-emerald" />
-            Platform CivicTech — Transparansi Anggaran Jakarta
-          </div>
-
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up animate-delay-100">
-            Pantau{" "}
+          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up">
+            Jak{" "}
             <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
-              Jakarta
+              Scope
             </span>
           </h1>
 
-          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-in-up animate-delay-200">
-            Ubah dokumen APBD yang kompleks menjadi narasi publik yang mudah
-            dipahami dan visualisasi data interaktif. Karena setiap rupiah
-            anggaran adalah hak publik untuk diketahui.
+          <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-in-up animate-delay-100">
+            Peta interaktif untuk cek sebaran fasilitas umum di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman rekreasi.
           </p>
 
           {/* ===== INTERACTIVE JAKARTA MAP ===== */}
-          <div className="max-w-4xl mx-auto opacity-0 animate-fade-in-up animate-delay-300">
+          <div className="max-w-4xl mx-auto opacity-0 animate-fade-in-up animate-delay-200">
             <JakartaMap />
           </div>
         </div>
@@ -46,28 +38,28 @@ export default function LandingPage() {
       {/* ===== FEATURES SECTION ===== */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
-          Mengapa{" "}
-          <span className="text-jakarta-blue-light">PantauJakarta</span>?
+          Ada apa saja di{" "}
+          <span className="text-jakarta-blue-light">JakScope</span>?
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
           {[
             {
               icon: <BarChart3 size={28} />,
-              title: "Visualisasi Interaktif",
-              desc: "Grafik anggaran per sektor yang bisa diklik dan dieksplorasi — bukan lagi tabel PDF yang membingungkan.",
+              title: "Peta Tinggal Klik",
+              desc: "Tinggal ketuk wilayah kelurahan di peta buat cari tahu sebaran fasilitas sosial dan publik secara langsung.",
               color: "text-jakarta-blue-light",
             },
             {
               icon: <Shield size={28} />,
-              title: "Narasi AI",
-              desc: "Ringkasan anggaran dalam bahasa sehari-hari, dihasilkan oleh AI Gemini agar mudah dipahami semua kalangan.",
+              title: "Filter Gak Pake Ribet",
+              desc: "Mau cari sekolah, tempat olahraga, klinik, atau pos keamanan? Saring aja kategorinya sekali klik!",
               color: "text-jakarta-emerald",
             },
             {
               icon: <Search size={28} />,
-              title: "Data Terbuka",
-              desc: "Sumber data langsung dari portal resmi APBD Jakarta (apbd.jakarta.go.id) — tiga tahun anggaran: 2023, 2024, 2025.",
+              title: "Data Selalu Update",
+              desc: "Datanya terhubung langsung ke OpenStreetMap (OSM), jadi selalu baru dan terbuka buat siapa saja.",
               color: "text-jakarta-amber",
             },
           ].map((feature) => (
@@ -90,17 +82,17 @@ export default function LandingPage() {
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">
         <p>
-          PantauJakarta — Proyek CivicTech untuk transparansi anggaran publik.
+          JakScope — Inisiatif Warga untuk pemetaan fasilitas publik terbuka.
         </p>
         <p className="mt-1">
-          Data bersumber dari{" "}
+          Data bersumber dari database kolaboratif{" "}
           <a
-            href="https://apbd.jakarta.go.id"
+            href="https://www.openstreetmap.org"
             target="_blank"
             rel="noopener noreferrer"
             className="text-jakarta-blue-light hover:underline"
           >
-            apbd.jakarta.go.id
+            openstreetmap.org
           </a>
         </p>
       </footer>

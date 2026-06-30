@@ -3,12 +3,12 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
-  title: "PantauJakarta — Transparansi Anggaran Digital Jakarta",
+  title: "JakScope — Peta Distribusi Fasilitas Publik Terbuka",
   description:
-    "Platform CivicTech yang mengubah dokumen APBD Jakarta menjadi narasi publik yang mudah dipahami dan visualisasi data interaktif.",
+    "Temukan dan pantau sebaran fasilitas publik riil seperti kesehatan, pendidikan, ruang terbuka hijau, hingga layanan keamanan di kelurahan Jakarta menggunakan data OpenStreetMap.",
   openGraph: {
-    title: "PantauJakarta",
-    description: "Transparansi Anggaran Digital Jakarta",
+    title: "JakScope",
+    description: "Peta Distribusi Fasilitas Publik DKI Jakarta",
     type: "website",
   },
 };

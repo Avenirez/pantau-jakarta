@@ -13,8 +13,8 @@ from routes.charts import router as charts_router
 from routes.qris import router as qris_router
 
 app = FastAPI(
-    title="PantauJakarta API",
-    description="Jakarta Digital Budget Transparency — Backend API Gateway",
+    title="JakScope API",
+    description="Jakarta Public Facilities Mapping — Backend API Gateway",
     version="1.0.0",
 )
 
@@ -33,4 +33,4 @@ app.include_router(qris_router)
 
 @app.get("/")
 def health():
-    return {"status": "ok", "mode": "production", "service": "PantauJakarta API"}
+    return {"status": "ok", "mode": "production", "service": "JakScope API"}

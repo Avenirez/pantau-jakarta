@@ -3,8 +3,8 @@ export interface Facility {
   name: string;
   lat: number;
   lon: number;
-  sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy";
-  category: string; // e.g., 'Sekolah', 'Puskesmas', 'Taman', 'Rumah Pompa', 'Pos Damkar'
+  sector: "health" | "education" | "recreation" | "public_services";
+  category: string; // e.g., 'Sekolah', 'Puskesmas', 'Taman', 'Pos Damkar'
   amenityType: string;
 }
 
@@ -41,21 +41,16 @@ function getFriendlyCategoryName(tags: any): string {
   if (tags.amenity === "doctors") return "Praktek Dokter";
   if (tags.leisure === "park" || tags.leisure === "playground") return "Taman & RPTRA";
   if (tags.leisure === "sports_centre" || tags.leisure === "pitch") return "Fasilitas Olahraga";
-  if (tags.waterway === "pumping_station" || tags.man_made === "pumping_station") return "Rumah Pompa";
-  if (tags.amenity === "waste_disposal" || tags.amenity === "recycling") return "Pengolahan Sampah";
   if (tags.amenity === "fire_station") return "Pos Pemadam Kebakaran";
   if (tags.amenity === "police") return "Pos Polisi";
   if (tags.amenity === "townhall") return "Kantor Pemerintahan";
   if (tags.amenity === "community_centre") return "Balai Warga/RW";
   if (tags.amenity === "post_office") return "Kantor Pos";
-  if (tags.amenity === "marketplace") return "Pasar Tradisional";
-  if (tags.highway === "bus_stop" || tags.amenity === "bus_station") return "Pemberhentian Bus/Halte";
-  if (tags.railway === "station") return "Stasiun Kereta";
   return "Fasilitas Publik";
 }
 
 function mapTagsToSectorAndCategory(tags: any): { 
-  sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy"; 
+  sector: "health" | "education" | "recreation" | "public_services"; 
   category: string 
 } {
   const category = getFriendlyCategoryName(tags);
@@ -91,27 +86,6 @@ function mapTagsToSectorAndCategory(tags: any): {
     return { sector: "recreation", category };
   }
 
-  // 4. Sektor Banjir & Sanitasi (flood)
-  if (
-    tags.waterway === "pumping_station" ||
-    tags.man_made === "pumping_station" ||
-    tags.amenity === "waste_disposal" ||
-    tags.amenity === "recycling"
-  ) {
-    return { sector: "flood", category };
-  }
-
-  // 5. Sektor Keamanan & Administrasi Publik (public_services)
-  if (
-    tags.amenity === "fire_station" ||
-    tags.amenity === "police" ||
-    tags.amenity === "townhall" ||
-    tags.amenity === "community_centre" ||
-    tags.amenity === "post_office"
-  ) {
-    return { sector: "public_services", category };
-  }
-
-  // 6. Sektor Transportasi & Ekonomi Lokal (mobility_economy)
-  return { sector: "mobility_economy", category };
+  // 4. Sektor Keamanan & Administrasi Publik (public_services)
+  return { sector: "public_services", category };
 }

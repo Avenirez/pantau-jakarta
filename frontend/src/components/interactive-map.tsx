@@ -7,7 +7,7 @@ import type { Facility } from "@/lib/overpass";
 
 interface InteractiveMapProps {
   facilities: Facility[];
-  selectedSector: string; // 'all' | 'health' | 'education' | 'recreation' | 'flood' | 'public_services' | 'mobility_economy'
+  selectedSector: string; // 'all' | 'health' | 'education' | 'recreation' | 'public_services'
   villageName: string;
   center?: [number, number] | null;
 }
@@ -30,7 +30,7 @@ export default function InteractiveMap({
 
   // Create custom marker icons for each sector with distinctive colors
   const createCustomIcon = (
-    sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy",
+    sector: "health" | "education" | "recreation" | "public_services",
     category: string
   ) => {
     let color = "#3b82f6"; // Default Blue (Education)
@@ -45,15 +45,9 @@ export default function InteractiveMap({
     } else if (sector === "recreation") {
       color = "#10b981"; // Emerald / Green
       glowColor = "rgba(16, 185, 129, 0.6)";
-    } else if (sector === "flood") {
-      color = "#06b6d4"; // Cyan
-      glowColor = "rgba(6, 182, 212, 0.6)";
     } else if (sector === "public_services") {
       color = "#a855f7"; // Purple
       glowColor = "rgba(168, 85, 247, 0.6)";
-    } else if (sector === "mobility_economy") {
-      color = "#f59e0b"; // Amber / Orange
-      glowColor = "rgba(245, 158, 11, 0.6)";
     }
 
     return L.divIcon({
@@ -150,18 +144,14 @@ export default function InteractiveMap({
         health: "Kesehatan",
         education: "Pendidikan",
         recreation: "Taman & Rekreasi",
-        flood: "Banjir & Sanitasi",
         public_services: "Layanan Keamanan & Publik",
-        mobility_economy: "Transportasi & Pasar",
       };
 
       const sectorColors: Record<string, string> = {
         health: "#f43f5e",
         education: "#38bdf8",
         recreation: "#10b981",
-        flood: "#06b6d4",
         public_services: "#a855f7",
-        mobility_economy: "#f59e0b",
       };
 
       // HTML inside Popup

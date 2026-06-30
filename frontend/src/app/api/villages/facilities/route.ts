@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabase";
 
 const OVERPASS_MIRRORS = [
   "https://overpass-api.de/api/interpreter",
@@ -16,21 +17,16 @@ function getFriendlyCategoryName(tags: any): string {
   if (tags.amenity === "doctors") return "Praktek Dokter";
   if (tags.leisure === "park" || tags.leisure === "playground") return "Taman & RPTRA";
   if (tags.leisure === "sports_centre" || tags.leisure === "pitch") return "Fasilitas Olahraga";
-  if (tags.waterway === "pumping_station" || tags.man_made === "pumping_station") return "Rumah Pompa";
-  if (tags.amenity === "waste_disposal" || tags.amenity === "recycling") return "Pengolahan Sampah";
   if (tags.amenity === "fire_station") return "Pos Pemadam Kebakaran";
   if (tags.amenity === "police") return "Pos Polisi";
   if (tags.amenity === "townhall") return "Kantor Pemerintahan";
   if (tags.amenity === "community_centre") return "Balai Warga/RW";
   if (tags.amenity === "post_office") return "Kantor Pos";
-  if (tags.amenity === "marketplace") return "Pasar Tradisional";
-  if (tags.highway === "bus_stop" || tags.amenity === "bus_station") return "Pemberhentian Bus/Halte";
-  if (tags.railway === "station") return "Stasiun Kereta";
   return "Fasilitas Publik";
 }
 
 function mapTagsToSectorAndCategory(tags: any): { 
-  sector: "health" | "education" | "recreation" | "flood" | "public_services" | "mobility_economy"; 
+  sector: "health" | "education" | "recreation" | "public_services"; 
   category: string 
 } {
   const category = getFriendlyCategoryName(tags);
@@ -63,26 +59,7 @@ function mapTagsToSectorAndCategory(tags: any): {
     return { sector: "recreation", category };
   }
 
-  if (
-    tags.waterway === "pumping_station" ||
-    tags.man_made === "pumping_station" ||
-    tags.amenity === "waste_disposal" ||
-    tags.amenity === "recycling"
-  ) {
-    return { sector: "flood", category };
-  }
-
-  if (
-    tags.amenity === "fire_station" ||
-    tags.amenity === "police" ||
-    tags.amenity === "townhall" ||
-    tags.amenity === "community_centre" ||
-    tags.amenity === "post_office"
-  ) {
-    return { sector: "public_services", category };
-  }
-
-  return { sector: "mobility_economy", category };
+  return { sector: "public_services", category };
 }
 
 function toTitleCase(str: string): string {
@@ -99,7 +76,7 @@ async function queryOverpassWithFallback(query: string): Promise<any> {
         body: "data=" + encodeURIComponent(query),
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "PantauJakarta/1.0 (contact@pantaujakarta.org)",
+          "User-Agent": "JakScope/1.0 (contact@jakscope.org)",
         },
         signal: AbortSignal.timeout(15000), // Larger timeout for facilities query
       });
@@ -132,6 +109,31 @@ export async function GET(request: Request) {
     const cleanName = villageName.replace(/^kelurahan\s+/i, "").trim();
     const titleCaseName = toTitleCase(cleanName);
 
+    // 1. Try cache lookup from Supabase first
+    try {
+      const { data: cacheData, error: cacheError } = await supabase
+        .from("osm_facilities_cache")
+        .select("facilities, center, updated_at")
+        .eq("village_name", titleCaseName)
+        .maybeSingle();
+
+      if (!cacheError && cacheData) {
+        const updatedAt = new Date(cacheData.updated_at).getTime();
+        const now = new Date().getTime();
+        const cacheAgeDays = (now - updatedAt) / (1000 * 60 * 60 * 24);
+
+        if (cacheAgeDays < 7) {
+          return NextResponse.json({
+            facilities: cacheData.facilities,
+            center: cacheData.center,
+            _cached: true,
+          });
+        }
+      }
+    } catch (cacheErr) {
+      console.warn("Failed to check OSM facilities cache in Supabase:", cacheErr);
+    }
+
     const query = `
       [out:json][timeout:25];
       relation["name"="${titleCaseName}"]["admin_level"~"7|8"]->.boundary;
@@ -141,14 +143,7 @@ export async function GET(request: Request) {
         nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
         nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
         nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
-        nwr["waterway"="pumping_station"](area.a);
-        nwr["man_made"="pumping_station"](area.a);
-        nwr["amenity"~"waste_disposal|recycling"](area.a);
         nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
-        nwr["amenity"="marketplace"](area.a);
-        nwr["highway"="bus_stop"](area.a);
-        nwr["amenity"="bus_station"](area.a);
-        nwr["railway"="station"](area.a);
       );
       out center;
     `;
@@ -186,6 +181,18 @@ export async function GET(request: Request) {
         amenityType: tags.amenity || tags.leisure || tags.waterway || tags.highway || tags.railway || "unknown",
       });
     });
+
+    // 2. Cache the result in Supabase asynchronously
+    try {
+      await supabase.from("osm_facilities_cache").upsert({
+        village_name: titleCaseName,
+        facilities,
+        center,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "village_name" });
+    } catch (cacheErr) {
+      console.warn("Failed to write OSM facilities cache to Supabase:", cacheErr);
+    }
 
     return NextResponse.json({ facilities, center });
   } catch (error: any) {
