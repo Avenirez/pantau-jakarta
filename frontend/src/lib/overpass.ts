@@ -8,14 +8,22 @@ export interface Facility {
   amenityType: string;
 }
 
+function toTitleCase(str: string): string {
+  return str.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
+}
+
 export async function fetchFacilitiesFromOSM(villageName: string): Promise<Facility[]> {
   // Clean village name if it contains "Kelurahan" prefix
   const cleanName = villageName.replace(/^kelurahan\s+/i, "").trim();
+  const titleCaseName = toTitleCase(cleanName);
 
-  // Overpass QL query searching for all public facilities in the Kelurahan
+  // Overpass QL query:
+  // 1. Exact match for area name (e.g. "Gondangdia" or "Kebon Sirih")
+  //    This uses OSM database indexes and resolves instantly, preventing read timeouts.
+  // 2. We omit admin_level restriction since some Jakarta kelurahans are mapped as admin_level 7 or 8.
   const query = `
     [out:json][timeout:25];
-    area["name"~"${cleanName}",i]["admin_level"="8"]->.a;
+    area["name"="${titleCaseName}"]->.a;
     (
       nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
       nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
@@ -32,12 +40,18 @@ export async function fetchFacilitiesFromOSM(villageName: string): Promise<Facil
     out center;
   `;
 
-  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-
+  // We use POST request which avoids browser URL length issues and 406 Not Acceptable blocks.
   try {
-    const response = await fetch(url);
+    const response = await fetch("https://overpass-api.de/api/interpreter", {
+      method: "POST",
+      body: "data=" + encodeURIComponent(query),
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    });
+
     if (!response.ok) {
-      throw new Error(`Overpass API error: ${response.statusText}`);
+      throw new Error(`Overpass API error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
