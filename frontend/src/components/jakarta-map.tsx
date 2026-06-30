@@ -47,53 +47,16 @@ export default function JakartaMap() {
       setStatusMessage("Mendeteksi kelurahan dari koordinat...");
 
       try {
-        // Query Overpass to find the admin boundary (Kelurahan / Kecamatan) containing coordinates
-        const query = `
-          [out:json][timeout:10];
-          is_in(${lat},${lng})->.a;
-          area.a["boundary"="administrative"]["admin_level"~"7|8"]->.b;
-          .b out tags;
-        `;
+        // Query our server-side detection and lookup API
+        const response = await fetch(`/api/villages/detect?lat=${lat}&lng=${lng}`);
         
-        const response = await fetch("https://overpass-api.de/api/interpreter", {
-          method: "POST",
-          body: "data=" + encodeURIComponent(query),
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-        });
-
         if (!response.ok) {
-          throw new Error("Gagal menghubungi sensor OpenStreetMap");
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || "Koordinat berada di luar batas Kelurahan DKI Jakarta atau tidak terdaftar.");
         }
 
-        const data = await response.json();
-        const elements = data.elements || [];
-
-        // Find elements with admin_level 7 or 8 (Kelurahan)
-        const kelurahanEl = elements.find(
-          (el: any) => el.tags && el.tags.name && (el.tags.admin_level === "7" || el.tags.admin_level === "8")
-        );
-
-        if (!kelurahanEl || !kelurahanEl.tags || !kelurahanEl.tags.name) {
-          throw new Error("Koordinat berada di luar batas Kelurahan DKI Jakarta");
-        }
-
-        const kelurahanName = kelurahanEl.tags.name;
-        setStatusMessage(`Kelurahan terdeteksi: ${kelurahanName}. Mencari di database...`);
-
-        // Query our lookup API
-        const lookupRes = await fetch(`/api/villages/lookup?name=${encodeURIComponent(kelurahanName)}`);
-        
-        if (!lookupRes.ok) {
-          if (lookupRes.status === 404) {
-            throw new Error(`Kelurahan '${kelurahanName}' tidak terdaftar di database PantauJakarta.`);
-          }
-          throw new Error("Gagal mengambil data dari database");
-        }
-
-        const lookupData = await lookupRes.json();
-        setStatusMessage("Ditemukan! Mengalihkan ke dashboard...");
+        const lookupData = await response.json();
+        setStatusMessage(`Ditemukan: Kelurahan ${lookupData.name}! Mengalihkan ke dashboard...`);
         
         // Navigate
         router.push(`/dashboard/${lookupData.id}`);
