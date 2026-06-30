@@ -12,17 +12,25 @@ function toTitleCase(str: string): string {
   return str.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
 }
 
-export async function fetchFacilitiesFromOSM(villageName: string): Promise<Facility[]> {
+export interface FetchFacilitiesResult {
+  facilities: Facility[];
+  center: [number, number] | null;
+}
+
+export async function fetchFacilitiesFromOSM(villageName: string): Promise<FetchFacilitiesResult> {
   // Clean village name if it contains "Kelurahan" prefix
   const cleanName = villageName.replace(/^kelurahan\s+/i, "").trim();
   const titleCaseName = toTitleCase(cleanName);
 
   // Overpass QL query:
-  // 1. Exact match for area name (e.g. "Gondangdia" or "Kebon Sirih")
+  // 1. Get the boundary center for the Kelurahan/Kecamatan relation first.
+  // 2. Exact match for area name (e.g. "Gondangdia" or "Kebon Sirih")
   //    This uses OSM database indexes and resolves instantly, preventing read timeouts.
-  // 2. We omit admin_level restriction since some Jakarta kelurahans are mapped as admin_level 7 or 8.
+  // 3. We omit admin_level restriction since some Jakarta kelurahans are mapped as admin_level 7 or 8.
   const query = `
     [out:json][timeout:25];
+    relation["name"="${titleCaseName}"]["admin_level"~"7|8"]->.boundary;
+    .boundary out center;
     area["name"="${titleCaseName}"]->.a;
     (
       nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
@@ -55,35 +63,41 @@ export async function fetchFacilitiesFromOSM(villageName: string): Promise<Facil
     }
 
     const data = await response.json();
-    if (!data.elements) return [];
+    if (!data.elements) return { facilities: [], center: null };
 
-    const facilities: Facility[] = data.elements
-      .map((el: any) => {
-        const tags = el.tags || {};
-        const name = tags.name || tags.operator || `${getFriendlyCategoryName(tags)} (Tanpa Nama)`;
-        const lat = el.lat ?? el.center?.lat;
-        const lon = el.lon ?? el.center?.lon;
+    let center: [number, number] | null = null;
+    const facilities: Facility[] = [];
 
-        if (!lat || !lon) return null;
+    data.elements.forEach((el: any) => {
+      if (el.type === "relation" && el.center) {
+        center = [el.center.lat, el.center.lon];
+        return;
+      }
 
-        const { sector, category } = mapTagsToSectorAndCategory(tags);
+      const tags = el.tags || {};
+      const name = tags.name || tags.operator || `${getFriendlyCategoryName(tags)} (Tanpa Nama)`;
+      const lat = el.lat ?? el.center?.lat;
+      const lon = el.lon ?? el.center?.lon;
 
-        return {
-          id: el.id,
-          name,
-          lat,
-          lon,
-          sector,
-          category,
-          amenityType: tags.amenity || tags.leisure || tags.waterway || tags.highway || tags.railway || "unknown",
-        };
-      })
-      .filter((f: any): f is Facility => f !== null);
+      if (!lat || !lon) return;
 
-    return facilities;
+      const { sector, category } = mapTagsToSectorAndCategory(tags);
+
+      facilities.push({
+        id: el.id,
+        name,
+        lat,
+        lon,
+        sector,
+        category,
+        amenityType: tags.amenity || tags.leisure || tags.waterway || tags.highway || tags.railway || "unknown",
+      });
+    });
+
+    return { facilities, center };
   } catch (error) {
     console.error("Gagal mengambil data dari Overpass API:", error);
-    return [];
+    return { facilities: [], center: null };
   }
 }
 

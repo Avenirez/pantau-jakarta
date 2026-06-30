@@ -43,6 +43,7 @@ export default function VillageDashboard() {
 
   // States for OSM Facilities Map
   const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [villageCenter, setVillageCenter] = useState<[number, number] | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>("all");
 
@@ -60,7 +61,10 @@ export default function VillageDashboard() {
     if (!data?.village_name) return;
     setLoadingMap(true);
     fetchFacilitiesFromOSM(data.village_name)
-      .then(setFacilities)
+      .then((res) => {
+        setFacilities(res.facilities);
+        setVillageCenter(res.center);
+      })
       .catch((err) => console.error("Error fetching OSM data:", err))
       .finally(() => setLoadingMap(false));
   }, [data?.village_name]);
@@ -178,6 +182,7 @@ export default function VillageDashboard() {
               facilities={facilities}
               selectedSector={selectedSectorFilter}
               villageName={data.village_name}
+              center={villageCenter}
             />
           )}
         </section>

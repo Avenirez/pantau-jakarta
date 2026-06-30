@@ -9,12 +9,14 @@ interface InteractiveMapProps {
   facilities: Facility[];
   selectedSector: string; // 'all' | 'health' | 'education' | 'recreation' | 'flood' | 'public_services' | 'mobility_economy'
   villageName: string;
+  center?: [number, number] | null;
 }
 
 export default function InteractiveMap({
   facilities,
   selectedSector,
   villageName,
+  center = null,
 }: InteractiveMapProps) {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -72,10 +74,13 @@ export default function InteractiveMap({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
-    // Default center at Jakarta
+    // Use center prop as initial center if provided, otherwise default to Jakarta
+    const initialCenter = center || [-6.2088, 106.8456];
+    const initialZoom = center ? 14 : 13;
+
     const map = L.map(mapContainerRef.current, {
-      center: [-6.2088, 106.8456],
-      zoom: 13,
+      center: initialCenter,
+      zoom: initialZoom,
       zoomControl: false,
     });
 
@@ -115,8 +120,12 @@ export default function InteractiveMap({
     markersGroup.clearLayers();
 
     if (filteredFacilities.length === 0) {
-      // Fallback to general Jakarta center if no facilities
-      map.setView([-6.2088, 106.8456], 12);
+      // Fallback to village center if provided, otherwise default general Jakarta center
+      if (center) {
+        map.setView(center, 14);
+      } else {
+        map.setView([-6.2088, 106.8456], 12);
+      }
       return;
     }
 
@@ -179,11 +188,16 @@ export default function InteractiveMap({
           animate: true,
           duration: 1.5,
         });
+      } else if (center) {
+        map.setView(center, 14);
       }
     } catch (e) {
       console.error("Error setting map bounds", e);
+      if (center) {
+        map.setView(center, 14);
+      }
     }
-  }, [filteredFacilities]);
+  }, [filteredFacilities, center]);
 
   return (
     <div className="relative w-full h-[400px] rounded-2xl overflow-hidden border border-slate-700/60 shadow-inner">
