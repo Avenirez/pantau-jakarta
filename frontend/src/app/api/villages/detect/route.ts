@@ -103,8 +103,33 @@ export async function GET(request: Request) {
       );
     }
 
+    // 1. Try checking the cache in Supabase first to avoid calling Overpass API
+    const titleCaseName = kelurahanName.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
+    try {
+      const { data: cacheData, error: cacheError } = await supabase
+        .from("osm_facilities_cache")
+        .select("facilities")
+        .eq("village_name", titleCaseName)
+        .maybeSingle();
+
+      if (!cacheError && cacheData) {
+        const facilities = cacheData.facilities || [];
+        if (facilities.length === 0) {
+          return NextResponse.json(
+            { error: `Kelurahan '${kelurahanName}' tidak memiliki fasilitas publik terdaftar di OpenStreetMap (0 fasilitas).` },
+            { status: 400 }
+          );
+        }
+        // Cache exists and has facilities, proceed immediately!
+        return NextResponse.json({ id: dbData.id, name: dbData.name });
+      }
+    } catch (cacheErr) {
+      console.warn("Failed to check OSM facilities cache in detect route:", cacheErr);
+    }
+
+    // 2. If not in cache, query live Overpass
     const facilitiesQuery = `
-      [out:json][timeout:6];
+      [out:json][timeout:8];
       (
         nwr["amenity"~"school|kindergarten|college|university|library"](around:1250,${lat},${lng});
         nwr["amenity"~"clinic|hospital|pharmacy|doctors"](around:1250,${lat},${lng});
@@ -127,11 +152,9 @@ export async function GET(request: Request) {
         );
       }
     } catch (err: any) {
-      console.error("Failed to pre-check OSM facilities count:", err);
-      return NextResponse.json(
-        { error: `Gagal memverifikasi fasilitas Kelurahan dari OpenStreetMap (Timeout/Koneksi Sibuk). Silakan coba sesaat lagi.` },
-        { status: 504 }
-      );
+      console.warn("Failed to pre-check OSM facilities count, falling back to allow navigation:", err);
+      // Graceful Fallback: If Overpass API is down or timing out, we DO NOT block the user.
+      // We allow them to view the dashboard page anyway.
     }
 
     return NextResponse.json({ id: dbData.id, name: dbData.name });

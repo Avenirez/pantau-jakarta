@@ -180,9 +180,15 @@ export default function JakartaMap() {
       // Navigate
       router.push(`/dashboard/${id}`);
     } catch (err: any) {
-      console.error(err);
-      setErrorMessage(err.message || "Terjadi kesalahan koneksi.");
-      setLoading(false);
+      console.error("Search selection error:", err);
+      const isExplicitBlock = err.message && err.message.includes("0 fasilitas");
+      if (isExplicitBlock) {
+        setErrorMessage(err.message);
+        setLoading(false);
+      } else {
+        // Fallback: If OSM API is down or times out, proceed to dashboard anyway
+        router.push(`/dashboard/${id}`);
+      }
     }
   };
 
