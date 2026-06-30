@@ -104,7 +104,7 @@ export async function GET(request: Request) {
     }
 
     // 1. Try checking the cache in Supabase first to avoid calling Overpass API
-    const titleCaseName = kelurahanName.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
+    const titleCaseName = kelurahanName.toLowerCase().replace(/(?:^|\s|-)\S/g, (m: string) => m.toUpperCase());
     try {
       const { data: cacheData, error: cacheError } = await supabase
         .from("osm_facilities_cache")
