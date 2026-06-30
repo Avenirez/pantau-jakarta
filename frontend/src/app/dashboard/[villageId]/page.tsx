@@ -15,7 +15,6 @@ import dynamic from "next/dynamic";
 import { fetchDashboard } from "@/lib/api";
 import type { DashboardData } from "@/lib/api";
 import MetricCard from "@/components/metric-card";
-import { SectorAreaChart, YearlyBarChart } from "@/components/recharts-chart";
 import QrisModal from "@/components/qris-modal";
 import AuthButton from "@/components/auth-button";
 import ReviewSection from "@/components/review-section";
@@ -208,27 +207,6 @@ export default function VillageDashboard() {
           )}
         </section>
 
-
-        {/* ===== CHARTS ===== */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="glass-card p-6 opacity-0 animate-fade-in-up animate-delay-200">
-            <h2 className="text-lg font-semibold text-white mb-4">
-              Rincian per Sektor ({data.fiscal_year})
-            </h2>
-            <div className="h-[350px]">
-              <SectorAreaChart data={data.chart_single} />
-            </div>
-          </div>
-
-          <div className="glass-card p-6 opacity-0 animate-fade-in-up animate-delay-300">
-            <h2 className="text-lg font-semibold text-white mb-4">
-              Perbandingan Tahunan
-            </h2>
-            <div className="h-[350px]">
-              <YearlyBarChart data={data.chart_yearly} />
-            </div>
-          </div>
-        </section>
 
         {/* ===== AI NARRATIVE ===== */}
         <section className="glass-card p-8 opacity-0 animate-fade-in-up animate-delay-400">
