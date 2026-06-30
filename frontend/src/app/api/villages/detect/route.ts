@@ -103,6 +103,43 @@ export async function GET(request: Request) {
       );
     }
 
+    // Check if the kelurahan has any facilities in OpenStreetMap
+    const facilitiesQuery = `
+      [out:json][timeout:10];
+      area["name"="${kelurahanName}"]->.a;
+      (
+        nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
+        nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
+        nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
+        nwr["waterway"="pumping_station"](area.a);
+        nwr["man_made"="pumping_station"](area.a);
+        nwr["amenity"~"waste_disposal|recycling"](area.a);
+        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
+        nwr["amenity"="marketplace"](area.a);
+        nwr["highway"="bus_stop"](area.a);
+        nwr["amenity"="bus_station"](area.a);
+        nwr["railway"="station"](area.a);
+      );
+      out count;
+    `;
+
+    try {
+      const facilitiesData = await queryOverpassWithFallback(facilitiesQuery);
+      const elements = facilitiesData.elements || [];
+      const countEl = elements.find((el: any) => el.type === "count");
+      const totalCount = countEl ? Number(countEl.tags?.total || 0) : 0;
+
+      if (totalCount === 0) {
+        return NextResponse.json(
+          { error: `Kelurahan '${kelurahanName}' tidak memiliki fasilitas publik terdaftar di OpenStreetMap (0 fasilitas).` },
+          { status: 400 }
+        );
+      }
+    } catch (err) {
+      console.warn("Failed to pre-check OSM facilities count:", err);
+      // Fallback: if Overpass check itself fails, we still allow proceeding so we don't break the app due to Overpass timeouts.
+    }
+
     return NextResponse.json({ id: dbData.id, name: dbData.name });
   } catch (error: any) {
     console.error("Detect Kelurahan Error:", error);

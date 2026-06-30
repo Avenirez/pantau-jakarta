@@ -134,6 +134,11 @@ export default function JakartaMap() {
       
       const data = await response.json();
       const center = data.center;
+      const facilities = data.facilities || [];
+
+      if (facilities.length === 0) {
+        throw new Error(`Kelurahan '${name}' tidak memiliki fasilitas publik terdaftar di OpenStreetMap (0 fasilitas).`);
+      }
 
       if (center && mapRef.current) {
         // Fly to coordinate center of the village
@@ -173,8 +178,8 @@ export default function JakartaMap() {
       router.push(`/dashboard/${id}`);
     } catch (err: any) {
       console.error(err);
-      // Fallback: navigate directly
-      router.push(`/dashboard/${id}`);
+      setErrorMessage(err.message || "Terjadi kesalahan koneksi.");
+      setLoading(false);
     }
   };
 
