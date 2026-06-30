@@ -78,10 +78,10 @@ export async function GET(request: Request) {
     const kelurahanName = kelurahanEl.tags.name.trim();
     const cleanName = kelurahanName.toUpperCase();
 
-    // Query Supabase for the village ID
+    // Query Supabase for the village ID and check if it has budgets
     const { data: dbData, error: dbError } = await supabase
       .from("villages")
-      .select("id, name")
+      .select("id, name, budgets(id)")
       .eq("name", cleanName)
       .maybeSingle();
 
@@ -93,6 +93,13 @@ export async function GET(request: Request) {
       return NextResponse.json(
         { error: `Kelurahan '${kelurahanName}' tidak terdaftar di database PantauJakarta` },
         { status: 404 }
+      );
+    }
+
+    if (!dbData.budgets || dbData.budgets.length === 0) {
+      return NextResponse.json(
+        { error: `Kelurahan '${kelurahanName}' terdeteksi, namun belum memiliki data laporan anggaran saat ini.` },
+        { status: 400 }
       );
     }
 
