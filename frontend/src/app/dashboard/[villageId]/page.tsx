@@ -4,9 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
-  Wallet,
-  Trophy,
-  TrendingUp,
   Sparkles,
   MapPin,
 } from "lucide-react";
@@ -14,7 +11,6 @@ import dynamic from "next/dynamic";
 
 import { fetchDashboard } from "@/lib/api";
 import type { DashboardData } from "@/lib/api";
-import MetricCard from "@/components/metric-card";
 import QrisModal from "@/components/qris-modal";
 import AuthButton from "@/components/auth-button";
 import ReviewSection from "@/components/review-section";
@@ -129,30 +125,6 @@ export default function VillageDashboard() {
       </header>
 
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* ===== METRIC CARDS ===== */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <MetricCard
-            label="Total Anggaran"
-            value={formatRupiah(metrics.total_budget)}
-            icon={<Wallet size={20} />}
-            subtext={`Tahun ${data.fiscal_year}`}
-            delay="animate-delay-100"
-          />
-          <MetricCard
-            label="Sektor Terbesar"
-            value={metrics.top_sector}
-            icon={<Trophy size={20} />}
-            delay="animate-delay-200"
-          />
-          <MetricCard
-            label="Perubahan YoY"
-            value={`${metrics.yoy_change > 0 ? "+" : ""}${metrics.yoy_change}%`}
-            icon={<TrendingUp size={20} />}
-            trend={metrics.yoy_change}
-            subtext="vs tahun sebelumnya"
-            delay="animate-delay-300"
-          />
-        </section>
 
         {/* ===== INTERACTIVE MAP ===== */}
         <section className="glass-card p-6 opacity-0 animate-fade-in-up animate-delay-200">
