@@ -4,15 +4,46 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Search, MapPin, AlertCircle, Loader2 } from "lucide-react";
+import { Search, MapPin, AlertCircle, Loader2, X } from "lucide-react";
 
 export default function JakartaMap() {
   const router = useRouter();
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
   const [loading, setLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Search States
+  const [villagesList, setVillagesList] = useState<Array<{ id: number; name: string; districtName: string }>>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
+  // Fetch villages list for search
+  useEffect(() => {
+    fetch("/api/villages")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setVillagesList(data);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // Handle click outside to close the search dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Initialize Map
   useEffect(() => {
@@ -49,7 +80,7 @@ export default function JakartaMap() {
     L.control.zoom({ position: "bottomright" }).addTo(map);
     mapRef.current = map;
 
-    // Handle Click
+    // Handle Map Click
     const onMapClick = async (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       setLoading(true);
@@ -88,13 +119,80 @@ export default function JakartaMap() {
     };
   }, [router]);
 
+  // Handle Search Result Select
+  const handleSelectVillage = async (id: number, name: string) => {
+    setSearchQuery(name);
+    setIsSearchOpen(false);
+    setLoading(true);
+    setErrorMessage(null);
+    setStatusMessage(`Mencari titik koordinat Kelurahan ${name}...`);
+
+    try {
+      // Fetch coordinates of the village boundary center
+      const response = await fetch(`/api/villages/facilities?name=${encodeURIComponent(name)}`);
+      if (!response.ok) throw new Error("Gagal memuat koordinat kelurahan.");
+      
+      const data = await response.json();
+      const center = data.center;
+
+      if (center && mapRef.current) {
+        // Fly to coordinate center of the village
+        mapRef.current.flyTo(center, 14.5, {
+          animate: true,
+          duration: 1.5
+        });
+
+        // Clear previous selection marker
+        if (markerRef.current) {
+          markerRef.current.remove();
+        }
+
+        // Custom selecting marker
+        const customIcon = L.divIcon({
+          html: `
+            <div class="relative flex items-center justify-center w-8 h-8">
+              <div class="absolute w-8 h-8 rounded-full bg-sky-400/30 animate-ping"></div>
+              <div class="w-4.5 h-4.5 rounded-full border-2 border-slate-900 bg-sky-400 shadow-lg"></div>
+            </div>
+          `,
+          className: "custom-select-marker",
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const marker = L.marker(center, { icon: customIcon }).addTo(mapRef.current);
+        markerRef.current = marker;
+
+        setStatusMessage(`Menemukan Kelurahan ${name}! Mengalihkan ke dashboard...`);
+        
+        // Wait for visual flying animation
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+      }
+
+      // Navigate
+      router.push(`/dashboard/${id}`);
+    } catch (err: any) {
+      console.error(err);
+      // Fallback: navigate directly
+      router.push(`/dashboard/${id}`);
+    }
+  };
+
+  // Filter list of villages based on query input
+  const filteredVillages = searchQuery.trim() === ""
+    ? []
+    : villagesList.filter((v) =>
+        v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.districtName.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 8);
+
   return (
-    <div className="relative w-full h-[500px] rounded-3xl overflow-hidden border border-slate-700/60 shadow-2xl">
+    <div className="relative w-full h-[530px] rounded-3xl overflow-hidden border border-slate-700/60 shadow-2xl">
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full z-10 cursor-crosshair" />
 
       {/* Floating Helper overlay */}
-      <div className="absolute top-4 left-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl px-5 py-4 shadow-xl max-w-sm pointer-events-none">
+      <div className="absolute top-4 left-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl px-5 py-4 shadow-xl max-w-sm pointer-events-none hidden sm:block">
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-jakarta-blue/20 text-jakarta-blue-light mt-0.5">
             <MapPin size={18} className="animate-bounce" />
@@ -106,6 +204,61 @@ export default function JakartaMap() {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Floating Search Dropdown overlay */}
+      <div className="absolute top-4 right-4 z-20 w-80" ref={searchRef}>
+        <div className="relative bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl p-1 flex items-center">
+          <Search size={18} className="text-slate-400 ml-3 shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            placeholder="Cari Kelurahan atau Kecamatan..."
+            onFocus={() => setIsSearchOpen(true)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            className="w-full bg-transparent text-slate-200 placeholder-slate-400 text-xs px-3 py-2.5 focus:outline-none"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setIsSearchOpen(false);
+              }}
+              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors mr-1"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* Search Results Dropdown List */}
+        {isSearchOpen && filteredVillages.length > 0 && (
+          <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+            {filteredVillages.map((v) => (
+              <button
+                key={v.id}
+                onClick={() => handleSelectVillage(v.id, v.name)}
+                className="w-full text-left px-4 py-3 hover:bg-slate-800/60 border-b border-slate-800/40 last:border-0 transition-colors flex flex-col gap-0.5"
+              >
+                <span className="text-xs font-semibold text-white">
+                  Kelurahan {v.name}
+                </span>
+                <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                  Kecamatan {v.districtName}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {isSearchOpen && searchQuery.trim() !== "" && filteredVillages.length === 0 && (
+          <div className="absolute left-0 right-0 mt-2 bg-slate-900/95 backdrop-blur-md border border-slate-800 rounded-xl shadow-xl p-4 text-center text-xs text-slate-400">
+            Kelurahan tidak ditemukan
+          </div>
+        )}
       </div>
 
       {/* Loading Overlay */}
