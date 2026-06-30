@@ -134,26 +134,59 @@ export async function GET(request: Request) {
       console.warn("Failed to check OSM facilities cache in Supabase:", cacheErr);
     }
 
-    const query = `
-      [out:json][timeout:25];
-      relation["name"="${titleCaseName}"]["admin_level"~"7|8"]->.boundary;
-      .boundary out center;
-      area["name"="${titleCaseName}"]->.a;
-      (
-        nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
-        nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
-        nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
-        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
-      );
+    // Get relation center first (fast ~0.2s)
+    const relationQuery = `
+      [out:json][timeout:8];
+      relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
       out center;
     `;
 
-    const data = await queryOverpassWithFallback(query);
-    if (!data.elements) {
-      return NextResponse.json({ facilities: [], center: null });
+    let center: [number, number] | null = null;
+    let data: any = { elements: [] };
+
+    try {
+      const relationData = await queryOverpassWithFallback(relationQuery);
+      const relationEl = (relationData.elements || []).find((el: any) => el.type === "relation" && el.center);
+      if (relationEl && relationEl.center) {
+        center = [relationEl.center.lat, relationEl.center.lon];
+      }
+    } catch (relationErr) {
+      console.warn("Failed to fetch relation center for", titleCaseName, relationErr);
     }
 
-    let center: [number, number] | null = null;
+    // Now query facilities
+    let query = "";
+    if (center) {
+      const [lat, lon] = center;
+      query = `
+        [out:json][timeout:12];
+        (
+          nwr["amenity"~"school|kindergarten|college|university|library"](around:1250,${lat},${lon});
+          nwr["amenity"~"clinic|hospital|pharmacy|doctors"](around:1250,${lat},${lon});
+          nwr["leisure"~"park|playground|sports_centre|pitch"](around:1250,${lat},${lon});
+          nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](around:1250,${lat},${lon});
+        );
+        out center;
+      `;
+    } else {
+      // Fallback to area query
+      query = `
+        [out:json][timeout:20];
+        area["name"="${titleCaseName}"]->.a;
+        (
+          nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
+          nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
+          nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
+          nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
+        );
+        out center;
+      `;
+    }
+
+    data = await queryOverpassWithFallback(query);
+    if (!data.elements) {
+      return NextResponse.json({ facilities: [], center });
+    }
     const facilities: any[] = [];
 
     data.elements.forEach((el: any) => {

@@ -104,13 +104,12 @@ export async function GET(request: Request) {
     }
 
     const facilitiesQuery = `
-      [out:json][timeout:10];
-      area["name"="${kelurahanName}"]->.a;
+      [out:json][timeout:6];
       (
-        nwr["amenity"~"school|kindergarten|college|university|library"](area.a);
-        nwr["amenity"~"clinic|hospital|pharmacy|doctors"](area.a);
-        nwr["leisure"~"park|playground|sports_centre|pitch"](area.a);
-        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](area.a);
+        nwr["amenity"~"school|kindergarten|college|university|library"](around:1250,${lat},${lng});
+        nwr["amenity"~"clinic|hospital|pharmacy|doctors"](around:1250,${lat},${lng});
+        nwr["leisure"~"park|playground|sports_centre|pitch"](around:1250,${lat},${lng});
+        nwr["amenity"~"fire_station|police|townhall|community_centre|post_office"](around:1250,${lat},${lng});
       );
       out count;
     `;
