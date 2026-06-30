@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Sparkles,
   MapPin,
+  AlertCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -46,6 +47,7 @@ export default function VillageDashboard() {
   const [villageCenter, setVillageCenter] = useState<[number, number] | null>(null);
   const [loadingMap, setLoadingMap] = useState(false);
   const [selectedSectorFilter, setSelectedSectorFilter] = useState<string>("all");
+  const [mapError, setMapError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!villageId) return;
@@ -60,12 +62,16 @@ export default function VillageDashboard() {
   useEffect(() => {
     if (!data?.village_name) return;
     setLoadingMap(true);
+    setMapError(null);
     fetchFacilitiesFromOSM(data.village_name)
       .then((res) => {
         setFacilities(res.facilities);
         setVillageCenter(res.center);
       })
-      .catch((err) => console.error("Error fetching OSM data:", err))
+      .catch((err) => {
+        console.error("Error fetching OSM data:", err);
+        setMapError(err.message || "Gagal mengambil data dari OpenStreetMap.");
+      })
       .finally(() => setLoadingMap(false));
   }, [data?.village_name]);
 
@@ -175,6 +181,35 @@ export default function VillageDashboard() {
                 <div className="w-9 h-9 border-4 border-jakarta-blue-light border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                 <p className="text-sm text-slate-400">Menghubungi OpenStreetMap Overpass API...</p>
                 <p className="text-xs text-slate-600 mt-1">Mengambil koordinat fasilitas kelurahan {data.village_name}</p>
+              </div>
+            </div>
+          ) : mapError ? (
+            <div className="w-full h-[400px] bg-slate-950/40 rounded-2xl flex items-center justify-center border border-slate-800/60 shadow-inner p-6 text-center">
+              <div className="max-w-md">
+                <AlertCircle className="w-9 h-9 text-rose-400 mx-auto mb-3 animate-pulse" />
+                <p className="text-sm text-slate-200 font-semibold">{mapError}</p>
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  Layanan data peta sedang padat atau mengalami gangguan timeout. Silakan klik tombol di bawah untuk memuat ulang data peta.
+                </p>
+                <button
+                  onClick={() => {
+                    setLoadingMap(true);
+                    setMapError(null);
+                    fetchFacilitiesFromOSM(data.village_name)
+                      .then((res) => {
+                        setFacilities(res.facilities);
+                        setVillageCenter(res.center);
+                      })
+                      .catch((err) => {
+                        console.error(err);
+                        setMapError(err.message || "Gagal memuat data peta.");
+                      })
+                      .finally(() => setLoadingMap(false));
+                  }}
+                  className="mt-4 px-4 py-2 bg-slate-850 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700/60 transition-colors shadow-md"
+                >
+                  Coba Lagi
+                </button>
               </div>
             </div>
           ) : (

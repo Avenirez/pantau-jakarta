@@ -18,22 +18,18 @@ export interface FetchFacilitiesResult {
 }
 
 export async function fetchFacilitiesFromOSM(villageName: string): Promise<FetchFacilitiesResult> {
-  try {
-    const response = await fetch(`/api/villages/facilities?name=${encodeURIComponent(villageName)}`);
+  const response = await fetch(`/api/villages/facilities?name=${encodeURIComponent(villageName)}`);
 
-    if (!response.ok) {
-      throw new Error(`Facilities API error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return {
-      facilities: data.facilities || [],
-      center: data.center || null,
-    };
-  } catch (error) {
-    console.error("Gagal mengambil data dari API fasilitas:", error);
-    return { facilities: [], center: null };
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error || `Gagal memuat data dari OpenStreetMap (Status ${response.status})`);
   }
+
+  const data = await response.json();
+  return {
+    facilities: data.facilities || [],
+    center: data.center || null,
+  };
 }
 
 function getFriendlyCategoryName(tags: any): string {

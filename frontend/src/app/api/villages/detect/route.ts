@@ -135,9 +135,12 @@ export async function GET(request: Request) {
           { status: 400 }
         );
       }
-    } catch (err) {
-      console.warn("Failed to pre-check OSM facilities count:", err);
-      // Fallback: if Overpass check itself fails, we still allow proceeding so we don't break the app due to Overpass timeouts.
+    } catch (err: any) {
+      console.error("Failed to pre-check OSM facilities count:", err);
+      return NextResponse.json(
+        { error: `Gagal memverifikasi fasilitas Kelurahan dari OpenStreetMap (Timeout/Koneksi Sibuk). Silakan coba sesaat lagi.` },
+        { status: 504 }
+      );
     }
 
     return NextResponse.json({ id: dbData.id, name: dbData.name });

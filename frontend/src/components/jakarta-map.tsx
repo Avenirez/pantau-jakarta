@@ -130,7 +130,10 @@ export default function JakartaMap() {
     try {
       // Fetch coordinates of the village boundary center
       const response = await fetch(`/api/villages/facilities?name=${encodeURIComponent(name)}`);
-      if (!response.ok) throw new Error("Gagal memuat koordinat kelurahan.");
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Gagal memuat koordinat kelurahan.");
+      }
       
       const data = await response.json();
       const center = data.center;
