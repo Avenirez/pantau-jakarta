@@ -89,6 +89,20 @@ npm install
 npm run dev
 ```
 
+### 4. (Opsional tapi disarankan) Pre-warm cache fasilitas OSM
+
+Sebelum publish ke publik, jalankan sekali supaya semua kelurahan sudah
+punya cache fasilitas OpenStreetMap — visitor pertama pun langsung dapat
+data cepat dari Supabase, tanpa menunggu live query ke Overpass API:
+
+```bash
+cd frontend
+npm run prewarm-osm
+```
+
+Jalankan ulang secara berkala (mis. mingguan via cron) untuk me-refresh cache.
+
+
 Buka `http://localhost:3000` di browser.
 
 ## API Endpoints

@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-
-const OVERPASS_MIRRORS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://api-overpass.osm.ch/api/interpreter",
-  "https://overpass.kumi.systems/api/interpreter"
-];
+import { queryOverpass } from "@/lib/overpass-server";
 
 // Helper helper function to map tags to sector labels
 function getFriendlyCategoryName(tags: any): string {
@@ -25,9 +20,9 @@ function getFriendlyCategoryName(tags: any): string {
   return "Fasilitas Publik";
 }
 
-function mapTagsToSectorAndCategory(tags: any): { 
-  sector: "health" | "education" | "recreation" | "public_services"; 
-  category: string 
+function mapTagsToSectorAndCategory(tags: any): {
+  sector: "health" | "education" | "recreation" | "public_services";
+  category: string
 } {
   const category = getFriendlyCategoryName(tags);
 
@@ -66,34 +61,6 @@ function toTitleCase(str: string): string {
   return str.toLowerCase().replace(/(?:^|\s|-)\S/g, (m) => m.toUpperCase());
 }
 
-async function queryOverpassWithFallback(query: string): Promise<any> {
-  let lastError = null;
-
-  for (const url of OVERPASS_MIRRORS) {
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        body: "data=" + encodeURIComponent(query),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "JakScope/1.0 (contact@jakscope.org)",
-        },
-        signal: AbortSignal.timeout(15000), // Larger timeout for facilities query
-      });
-
-      if (res.ok) {
-        return await res.json();
-      }
-      lastError = new Error(`Overpass mirror ${url} returned status ${res.status}`);
-    } catch (err: any) {
-      lastError = err;
-      console.warn(`Overpass mirror ${url} failed for facilities:`, err.message || err);
-    }
-  }
-
-  throw lastError || new Error("All Overpass API mirrors failed to retrieve facilities");
-}
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -109,7 +76,7 @@ export async function GET(request: Request) {
     const cleanName = villageName.replace(/^kelurahan\s+/i, "").trim();
     const titleCaseName = toTitleCase(cleanName);
 
-    // 1. Try cache lookup from Supabase first
+    // 1. Try cache lookup from Supabase first (fresh within 7 days)
     try {
       const { data: cacheData, error: cacheError } = await supabase
         .from("osm_facilities_cache")
@@ -134,27 +101,52 @@ export async function GET(request: Request) {
       console.warn("Failed to check OSM facilities cache in Supabase:", cacheErr);
     }
 
-    // Get relation center first (fast ~0.2s)
-    const relationQuery = `
-      [out:json][timeout:8];
-      relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
-      out center;
-    `;
-
+    // 2. Try the permanent center stored on the village row (boundaries never
+    //    change, so this skips a full relation query to Overpass entirely).
     let center: [number, number] | null = null;
-    let data: any = { elements: [] };
-
     try {
-      const relationData = await queryOverpassWithFallback(relationQuery);
-      const relationEl = (relationData.elements || []).find((el: any) => el.type === "relation" && el.center);
-      if (relationEl && relationEl.center) {
-        center = [relationEl.center.lat, relationEl.center.lon];
+      const { data: villageRow } = await supabase
+        .from("villages")
+        .select("center_lat, center_lon")
+        .eq("name", cleanName.toUpperCase())
+        .maybeSingle();
+
+      if (villageRow?.center_lat && villageRow?.center_lon) {
+        center = [villageRow.center_lat, villageRow.center_lon];
       }
-    } catch (relationErr) {
-      console.warn("Failed to fetch relation center for", titleCaseName, relationErr);
+    } catch (villageErr) {
+      console.warn("Failed to read permanent village center:", villageErr);
     }
 
-    // Now query facilities
+    // 3. If no stored center, fetch it from Overpass once and persist it.
+    if (!center) {
+      const relationQuery = `
+        [out:json][timeout:8];
+        relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
+        out center;
+      `;
+
+      try {
+        const relationData = await queryOverpass(relationQuery);
+        const relationEl = (relationData.elements || []).find((el: any) => el.type === "relation" && el.center);
+        if (relationEl && relationEl.center) {
+          center = [relationEl.center.lat, relationEl.center.lon];
+
+          // Persist permanently so we never need to ask Overpass for this again.
+          supabase
+            .from("villages")
+            .update({ center_lat: center[0], center_lon: center[1] })
+            .eq("name", cleanName.toUpperCase())
+            .then(({ error }) => {
+              if (error) console.warn("Failed to persist village center:", error);
+            });
+        }
+      } catch (relationErr) {
+        console.warn("Failed to fetch relation center for", titleCaseName, relationErr);
+      }
+    }
+
+    // 4. Query facilities using whichever center we ended up with.
     let query = "";
     if (center) {
       const [lat, lon] = center;
@@ -169,7 +161,7 @@ export async function GET(request: Request) {
         out center;
       `;
     } else {
-      // Fallback to area query
+      // Fallback to area query if we truly have no coordinates at all
       query = `
         [out:json][timeout:20];
         area["name"="${titleCaseName}"]->.a;
@@ -183,7 +175,7 @@ export async function GET(request: Request) {
       `;
     }
 
-    data = await queryOverpassWithFallback(query);
+    const data = await queryOverpass(query, 15000);
     if (!data.elements) {
       return NextResponse.json({ facilities: [], center });
     }
@@ -215,7 +207,7 @@ export async function GET(request: Request) {
       });
     });
 
-    // 2. Cache the result in Supabase asynchronously
+    // 5. Cache the result in Supabase asynchronously
     try {
       await supabase.from("osm_facilities_cache").upsert({
         village_name: titleCaseName,

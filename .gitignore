@@ -28,7 +28,3 @@ frontend/.env.local
 # Operating System files
 .DS_Store
 Thumbs.db
-
-# TS build info
-*.tsbuildinfo
-
