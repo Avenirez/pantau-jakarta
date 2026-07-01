@@ -60,8 +60,9 @@ export default function QrisModal() {
             </h3>
             <p className="text-slate-400 text-sm mb-6">
               Scan QR di bawah menggunakan GoPay, OVO, DANA, LinkAja, atau
-              Mobile Banking. Nominal{" "}
-              <strong className="text-emerald-400">Rp 5.000</strong>.
+              Mobile Banking.
+              <br />
+              Nominal <strong className="text-emerald-400">Rp 5.000</strong>.
             </p>
 
             {/* QR Code image from backend */}
@@ -75,10 +76,6 @@ export default function QrisModal() {
                 className="mx-auto"
               />
             </div>
-
-            <p className="text-xs text-slate-500">
-              ⚠ Fitur donasi ini bersifat demo/edukatif.
-            </p>
           </div>
         </div>
       )}

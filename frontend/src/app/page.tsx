@@ -39,7 +39,7 @@ export default function LandingPage() {
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
           Ada apa saja di{" "}
-          <span className="text-jakarta-blue-light">JakScope</span>?
+          <span className="text-jakarta-blue-light">Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span></span>?
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -82,7 +82,7 @@ export default function LandingPage() {
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">
         <p>
-          JakScope — Inisiatif Warga untuk pemetaan fasilitas publik terbuka.
+          Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span> — Inisiatif Warga untuk pemetaan fasilitas publik terbuka.
         </p>
         <p className="mt-1">
           Data bersumber dari database kolaboratif{" "}

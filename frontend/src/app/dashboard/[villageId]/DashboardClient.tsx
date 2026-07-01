@@ -179,7 +179,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
 
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        JakScope · Data dari{" "}
+        Jak<span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">Scope</span> · Data dari{" "}
         <a
           href="https://www.openstreetmap.org"
           target="_blank"
