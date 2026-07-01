@@ -18,7 +18,7 @@ export default function LandingPage() {
 
         <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up">
-            Jak{" "}
+            Jak
             <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
               Scope
             </span>

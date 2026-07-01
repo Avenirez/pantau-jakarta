@@ -213,7 +213,7 @@ export default function InteractiveMap({
           Kelurahan {villageName}
         </h3>
         <p className="text-[11px] text-slate-500 mt-1">
-          Menampilkan {filteredFacilities.length} fasilitas dari OpenStreetMap
+          Menampilkan {filteredFacilities.length} fasilitas dari seluruh sektor
         </p>
       </div>
 

@@ -86,10 +86,10 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             <div>
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <MapPin size={20} className="text-jakarta-blue-light animate-bounce" />
-                Peta Distribusi Fasilitas Publik (Data Riil OSM)
+                Peta Distribusi Fasilitas Publik
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Lokasi fisik fasilitas sosial & umum asli di Kelurahan {data.village_name} yang diambil dari database OpenStreetMap.
+                Lokasi fisik fasilitas sosial & umum asli di Kelurahan {data.village_name}.
               </p>
             </div>
 
@@ -121,7 +121,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             <div className="w-full h-[400px] bg-slate-950/40 rounded-2xl flex items-center justify-center border border-slate-800/60 shadow-inner">
               <div className="text-center">
                 <div className="w-9 h-9 border-4 border-jakarta-blue-light border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-slate-400">Menghubungi OpenStreetMap Overpass API...</p>
+                <p className="text-sm text-slate-400">Menghubungi JakScope...</p>
                 <p className="text-xs text-slate-600 mt-1">Mengambil koordinat fasilitas kelurahan {data.village_name}</p>
               </div>
             </div>
@@ -165,33 +165,13 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         </section>
 
 
-        {/* ===== AI NARRATIVE ===== */}
-        <section className="glass-card p-8 opacity-0 animate-fade-in-up animate-delay-400">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-jakarta-emerald/20 text-jakarta-emerald">
-              <Sparkles size={20} />
-            </div>
-            <h2 className="text-lg font-semibold text-white">
-              Ringkasan AI
-            </h2>
-          </div>
-          <p className="text-slate-300 leading-relaxed whitespace-pre-line">
-            {data.ai_narrative}
-          </p>
-          <p className="mt-4 text-xs text-slate-500">
-            Dihasilkan oleh Gemini AI — bersifat ringkasan otomatis, bukan
-            opini resmi pemerintah.
-          </p>
-        </section>
-
         {/* ===== REVIEWS & RATINGS ===== */}
         <ReviewSection villageId={villageId} />
 
         {/* ===== DONATION / QRIS ===== */}
         <section className="text-center py-12 opacity-0 animate-fade-in-up animate-delay-400">
           <p className="text-slate-400 mb-4 text-sm">
-            Platform ini dikelola secara sukarela. Bantu kami menjaga server
-            tetap berjalan.
+            Bantu platform ini agar tetap berjalan.
           </p>
           <QrisModal />
         </section>

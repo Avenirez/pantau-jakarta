@@ -29,7 +29,7 @@ export default function QrisModal() {
           size={22}
           className="group-hover:scale-110 transition-transform"
         />
-        Dukung Server Kami (Flat Rp5.000)
+        Donasi (Rp5.000)
       </button>
 
       {/* Modal overlay */}
@@ -60,7 +60,7 @@ export default function QrisModal() {
             </h3>
             <p className="text-slate-400 text-sm mb-6">
               Scan QR di bawah menggunakan GoPay, OVO, DANA, LinkAja, atau
-              Mobile Banking. Nominal otomatis terkunci{" "}
+              Mobile Banking. Nominal{" "}
               <strong className="text-emerald-400">Rp 5.000</strong>.
             </p>
 
