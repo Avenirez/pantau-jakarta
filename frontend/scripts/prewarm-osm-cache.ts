@@ -38,8 +38,6 @@ const OVERPASS_MIRRORS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 
-// Be polite to the shared public Overpass infrastructure: run sequentially
-// with a small delay between each village, instead of hammering it in parallel.
 const DELAY_BETWEEN_VILLAGES_MS = 1500;
 
 function toTitleCase(str: string): string {
@@ -113,7 +111,6 @@ function sleep(ms: number) {
 async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fail"> {
   const titleCaseName = toTitleCase(villageName);
 
-  // Skip if already cached and fresh (< 7 days)
   const { data: existing } = await supabase
     .from("osm_facilities_cache")
     .select("updated_at")
@@ -128,7 +125,6 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
   }
 
   try {
-    // 1. Get relation center
     const relationQuery = `
       [out:json][timeout:10];
       relation["name"="${titleCaseName}"]["admin_level"~"7|8"];
@@ -140,7 +136,6 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
     let center: [number, number] | null = null;
     if (relationEl?.center) {
       center = [relationEl.center.lat, relationEl.center.lon];
-      // Persist permanently on the village row too
       await supabase
         .from("villages")
         .update({ center_lat: center[0], center_lon: center[1] })
@@ -152,7 +147,6 @@ async function prewarmVillage(villageName: string): Promise<"ok" | "skip" | "fai
       return "fail";
     }
 
-    // 2. Get facilities around that center
     const [lat, lon] = center;
     const facilitiesQuery = `
       [out:json][timeout:15];

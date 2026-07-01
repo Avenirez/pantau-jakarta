@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 
 export const metadata: Metadata = {
-  title: "JakScope",
+  title: "JakScope — Peta Distribusi Fasilitas Publik Terbuka",
   description:
     "Temukan dan pantau sebaran fasilitas publik riil seperti kesehatan, pendidikan, ruang terbuka hijau, hingga layanan keamanan di kelurahan Jakarta menggunakan data OpenStreetMap.",
   openGraph: {

@@ -86,7 +86,6 @@ export default function InteractiveMap({
       maxBounds: jakartaBounds,
       maxBoundsViscosity: 1.0,
       zoomControl: false,
-      attributionControl: false,
     });
 
     // Dark-themed tiles for map (matches the glassmorphism dark theme)
@@ -200,29 +199,21 @@ export default function InteractiveMap({
     }
   }, [filteredFacilities, center]);
 
-  const sectorFilterLabels: Record<string, string> = {
-    all: "semua sektor",
-    health: "sektor kesehatan",
-    education: "sektor pendidikan",
-    recreation: "sektor taman & olahraga",
-    public_services: "sektor keamanan & publik",
-  };
-
   return (
-    <div className="relative w-full h-[400px] rounded-2xl overflow-hidden shadow-inner">
+    <div className="relative w-full h-[400px] rounded-2xl overflow-hidden border border-slate-700/60 shadow-inner">
       {/* Map Element */}
       <div ref={mapContainerRef} className="w-full h-full z-10" />
 
       {/* Floating Info Overlay */}
       <div className="absolute top-4 left-4 z-20 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-xl px-4 py-2.5 shadow-lg max-w-xs pointer-events-none">
         <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
-          Peta Fasilitas
+          Peta Fasilitas Riil
         </p>
         <h3 className="text-sm font-bold text-white truncate mt-0.5">
           Kelurahan {villageName}
         </h3>
         <p className="text-[11px] text-slate-500 mt-1">
-          Menampilkan {filteredFacilities.length} fasilitas dari {sectorFilterLabels[selectedSector] || "semua sektor"}
+          Menampilkan {filteredFacilities.length} fasilitas dari OpenStreetMap
         </p>
       </div>
 
@@ -242,21 +233,6 @@ export default function InteractiveMap({
           background: #0f172a !important;
           border-left: 1px solid #334155 !important;
           border-bottom: 1px solid #334155 !important;
-        }
-        .leaflet-bar {
-          border: none !important;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
-          border-radius: 8px !important;
-          overflow: hidden;
-        }
-        .leaflet-bar a {
-          background-color: #0f172a !important;
-          color: #94a3b8 !important;
-          border: none !important;
-        }
-        .leaflet-bar a:hover {
-          background-color: #1e293b !important;
-          color: #ffffff !important;
         }
       `}</style>
     </div>

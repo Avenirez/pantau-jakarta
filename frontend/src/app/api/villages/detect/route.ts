@@ -25,7 +25,6 @@ export async function GET(request: Request) {
     const data = await queryOverpass(query);
     const elements = data.elements || [];
 
-    // Find elements with admin_level 7 or 8 (Kelurahan)
     const kelurahanEl = elements.find(
       (el: any) =>
         el.tags &&
@@ -43,7 +42,6 @@ export async function GET(request: Request) {
     const kelurahanName = kelurahanEl.tags.name.trim();
     const cleanName = kelurahanName.toUpperCase();
 
-    // Query Supabase for the village ID and check if it has budgets
     const { data: dbData, error: dbError } = await supabase
       .from("villages")
       .select("id, name, budgets(id)")
@@ -70,10 +68,8 @@ export async function GET(request: Request) {
 
     // Best-effort check against the facilities cache (fast local DB read,
     // no external API call). We intentionally do NOT fall back to a live
-    // Overpass query here anymore — the dashboard page's own facilities
-    // fetch (/api/villages/facilities) will fetch and cache that data,
-    // so re-querying it here just to pre-validate the count would mean
-    // paying for the same Overpass round trip twice in a row.
+    // Overpass query here anymore — /api/villages/facilities on the
+    // dashboard page will fetch and cache that data itself.
     const titleCaseName = kelurahanName.toLowerCase().replace(/(?:^|\s|-)\S/g, (m: string) => m.toUpperCase());
     try {
       const { data: cacheData, error: cacheError } = await supabase
@@ -91,8 +87,6 @@ export async function GET(request: Request) {
           );
         }
       }
-      // Cache miss: proceed to the dashboard anyway. The facilities panel
-      // there will fetch (and cache) the real data on its own.
     } catch (cacheErr) {
       console.warn("Failed to check OSM facilities cache in detect route:", cacheErr);
     }

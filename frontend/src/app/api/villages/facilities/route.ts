@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { queryOverpass } from "@/lib/overpass-server";
 
-// Helper helper function to map tags to sector labels
 function getFriendlyCategoryName(tags: any): string {
   if (tags.amenity === "school" || tags.amenity === "kindergarten") return "Sekolah";
   if (tags.amenity === "college" || tags.amenity === "university") return "Universitas/Perguruan Tinggi";

@@ -35,7 +35,7 @@ export async function queryOverpass(query: string, timeoutMs = 8000): Promise<an
   );
 
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error("JakScope tidak merespons dalam waktu yang wajar")), timeoutMs);
+    setTimeout(() => reject(new Error("Overpass API tidak merespons dalam waktu yang wajar")), timeoutMs);
   });
 
   try {
@@ -47,7 +47,7 @@ export async function queryOverpass(query: string, timeoutMs = 8000): Promise<an
     controllers.forEach((c) => c.abort());
     if (err instanceof AggregateError) {
       const messages = err.errors.map((e: any) => e?.message || String(e)).join("; ");
-      throw new Error(`Semua mirror JakScope gagal merespons: ${messages}`);
+      throw new Error(`Semua mirror Overpass API gagal merespons: ${messages}`);
     }
     throw err;
   }
