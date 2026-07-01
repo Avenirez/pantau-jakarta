@@ -14,6 +14,7 @@ import type { DashboardData } from "@/lib/api";
 import QrisModal from "@/components/qris-modal";
 import AuthButton from "@/components/auth-button";
 import ReviewSection from "@/components/review-section";
+import ScopeText from "@/components/scope-text";
 import { fetchFacilitiesFromOSM, type Facility } from "@/lib/overpass";
 
 // Import Leaflet map component dynamically with SSR disabled to prevent Node window error
@@ -199,7 +200,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
 
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
-        JakScope · Data dari{" "}
+        Jak<ScopeText /> · Data dari{" "}
         <a
           href="https://www.openstreetmap.org"
           target="_blank"

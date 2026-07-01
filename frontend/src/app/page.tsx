@@ -2,6 +2,7 @@
 
 import { BarChart3, Shield, Search } from "lucide-react";
 import dynamic from "next/dynamic";
+import ScopeText from "@/components/scope-text";
 
 const JakartaMap = dynamic(() => import("@/components/jakarta-map"), {
   ssr: false,
@@ -18,14 +19,11 @@ export default function LandingPage() {
 
         <div className="relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center">
           <h1 className="text-4xl md:text-6xl font-extrabold leading-tight mb-6 opacity-0 animate-fade-in-up">
-            Jak{" "}
-            <span className="bg-gradient-to-r from-jakarta-blue-light to-jakarta-emerald bg-clip-text text-transparent">
-              Scope
-            </span>
+            Jak<ScopeText />
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-in-up animate-delay-100">
-            Peta interaktif untuk cek sebaran fasilitas umum di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman rekreasi.
+            Peta interaktif untuk cek sebaran fasilitas publik di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman rekreasi.
           </p>
 
           {/* ===== INTERACTIVE JAKARTA MAP ===== */}
@@ -38,8 +36,7 @@ export default function LandingPage() {
       {/* ===== FEATURES SECTION ===== */}
       <section className="max-w-5xl mx-auto px-6 py-20">
         <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
-          Ada apa saja di{" "}
-          <span className="text-jakarta-blue-light">JakScope</span>?
+          Ada apa saja di Jak<ScopeText />?
         </h2>
 
         <div className="grid md:grid-cols-3 gap-6">
@@ -82,7 +79,7 @@ export default function LandingPage() {
       {/* ===== FOOTER ===== */}
       <footer className="border-t border-slate-800 py-8 text-center text-sm text-slate-500">
         <p>
-          JakScope — Inisiatif Warga untuk pemetaan fasilitas publik terbuka.
+          Jak<ScopeText /> — Inisiatif Warga untuk pemetaan fasilitas publik terbuka.
         </p>
         <p className="mt-1">
           Data bersumber dari database kolaboratif{" "}
