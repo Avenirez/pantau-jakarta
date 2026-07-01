@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import DashboardClient from "./DashboardClient";
 import type { DashboardData } from "@/lib/api";
 
@@ -7,13 +8,20 @@ type Props = {
 };
 
 async function getDashboardData(villageId: string): Promise<DashboardData> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-  const res = await fetch(`${apiUrl}/api/villages/${villageId}/dashboard`, {
+  // Pakai internal API route Next.js (sudah connect langsung ke Supabase),
+  // bukan backend FastAPI eksternal yang tidak di-deploy.
+  const headersList = await headers();
+  const host = headersList.get("host");
+  const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
+
+  const res = await fetch(`${baseUrl}/api/villages/${villageId}/dashboard`, {
     next: { revalidate: 3600 } // Cache data for 1 hour
   });
 
   if (!res.ok) {
-    throw new Error(`Gagal mengambil data dashboard kelurahan (Status ${res.status})`);
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error || `Gagal mengambil data dashboard kelurahan (Status ${res.status})`);
   }
 
   return res.json();
