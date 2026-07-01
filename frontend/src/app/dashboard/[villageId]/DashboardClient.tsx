@@ -87,10 +87,10 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             <div>
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
                 <MapPin size={20} className="text-jakarta-blue-light animate-bounce" />
-                Peta Distribusi Fasilitas Publik (Data Riil OSM)
+                Peta Distribusi Fasilitas Publik
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Lokasi fisik fasilitas sosial & umum asli di Kelurahan {data.village_name} yang diambil dari database OpenStreetMap.
+                Lokasi fisik fasilitas sosial & umum asli di Kelurahan {data.village_name}.
               </p>
             </div>
 
@@ -166,24 +166,6 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         </section>
 
 
-        {/* ===== AI NARRATIVE ===== */}
-        <section className="glass-card p-8 opacity-0 animate-fade-in-up animate-delay-400">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-jakarta-emerald/20 text-jakarta-emerald">
-              <Sparkles size={20} />
-            </div>
-            <h2 className="text-lg font-semibold text-white">
-              Ringkasan AI
-            </h2>
-          </div>
-          <p className="text-slate-300 leading-relaxed whitespace-pre-line">
-            {data.ai_narrative}
-          </p>
-          <p className="mt-4 text-xs text-slate-500">
-            Dihasilkan oleh Gemini AI — bersifat ringkasan otomatis, bukan
-            opini resmi pemerintah.
-          </p>
-        </section>
 
         {/* ===== REVIEWS & RATINGS ===== */}
         <ReviewSection villageId={villageId} />
@@ -191,8 +173,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         {/* ===== DONATION / QRIS ===== */}
         <section className="text-center py-12 opacity-0 animate-fade-in-up animate-delay-400">
           <p className="text-slate-400 mb-4 text-sm">
-            Platform ini dikelola secara sukarela. Bantu kami menjaga server
-            tetap berjalan.
+            Bantu saya untuk menjaga server tetap berjalan.
           </p>
           <QrisModal />
         </section>
