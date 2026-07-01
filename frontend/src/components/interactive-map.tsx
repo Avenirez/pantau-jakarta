@@ -86,6 +86,7 @@ export default function InteractiveMap({
       maxBounds: jakartaBounds,
       maxBoundsViscosity: 1.0,
       zoomControl: false,
+      attributionControl: false,
     });
 
     // Dark-themed tiles for map (matches the glassmorphism dark theme)

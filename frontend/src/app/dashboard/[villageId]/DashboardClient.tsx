@@ -122,7 +122,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
             <div className="w-full h-[400px] bg-slate-950/40 rounded-2xl flex items-center justify-center border border-slate-800/60 shadow-inner">
               <div className="text-center">
                 <div className="w-9 h-9 border-4 border-jakarta-blue-light border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                <p className="text-sm text-slate-400">Menghubungi OpenStreetMap Overpass API...</p>
+                <p className="text-sm text-slate-400">Menghubungi JakScope...</p>
                 <p className="text-xs text-slate-600 mt-1">Mengambil koordinat fasilitas kelurahan {data.village_name}</p>
               </div>
             </div>
