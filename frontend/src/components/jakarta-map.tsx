@@ -214,7 +214,7 @@ export default function JakartaMap() {
           <div>
             <h3 className="text-sm font-bold text-white">Eksplorasi Peta DKI Jakarta</h3>
             <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-              Silakan **klik pada titik mana saja** di peta Jakarta. Sistem akan langsung mendeteksi Kelurahannya dan memuat dashboard anggaran publiknya.
+              Silakan **klik pada titik mana saja** di peta Jakarta. Sistem akan langsung mendeteksi Kelurahannya dan memuat dashboard fasilitas publiknya.
             </p>
           </div>
         </div>

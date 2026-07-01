@@ -70,7 +70,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
               Kelurahan {data.village_name}
             </h1>
             <p className="text-xs text-slate-400">
-              Kecamatan {data.district_name} · TA {data.fiscal_year}
+              Kecamatan {data.district_name}
             </p>
           </div>
 

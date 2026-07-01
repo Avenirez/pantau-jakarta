@@ -178,7 +178,7 @@ export default function ReviewSection({ villageId }: { villageId: number }) {
             Ulasan Warga
           </h2>
           <p className="text-xs text-slate-400">
-            Berikan penilaian dan ulasan untuk kelurahan ini
+            Berikan penilaian dan ulasan mengenai fasilitas publik di kelurahan ini
           </p>
         </div>
       </div>
@@ -228,7 +228,7 @@ export default function ReviewSection({ villageId }: { villageId: number }) {
                 id="review-comment"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Tulis pendapatmu tentang pengelolaan anggaran kelurahan ini... (min. 10 karakter)"
+                placeholder="Tulis pendapatmu tentang fasilitas publik di kelurahan ini... (min. 10 karakter)"
                 rows={3}
                 className="
                   w-full bg-slate-900/80 border border-slate-600/50

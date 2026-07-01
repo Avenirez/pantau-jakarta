@@ -25,7 +25,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed opacity-0 animate-fade-in-up animate-delay-100">
-            Peta interaktif untuk cek sebaran fasilitas umum di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman rekreasi.
+            Peta interaktif untuk cek sebaran fasilitas publik di seluruh kelurahan DKI Jakarta secara real-time. Cari kelurahanmu dan langsung lihat ketersediaan sekolah, klinik kesehatan, hingga taman rekreasi.
           </p>
 
           {/* ===== INTERACTIVE JAKARTA MAP ===== */}
