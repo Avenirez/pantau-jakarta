@@ -173,7 +173,7 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
         {/* ===== DONATION / QRIS ===== */}
         <section className="text-center py-12 opacity-0 animate-fade-in-up animate-delay-400">
           <p className="text-slate-400 mb-4 text-sm">
-            Bantu saya untuk menjaga server tetap berjalan.
+            Bantu platform ini agar tetap berjalan.
           </p>
           <QrisModal />
         </section>
